@@ -33,7 +33,7 @@ export function LoginForm() {
         return { error: result.message };
       }
 
-      router.push("/");
+      router.push("/projects");
       router.refresh();
       return { error: null };
     },

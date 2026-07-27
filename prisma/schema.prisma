@@ -28,6 +28,9 @@ model User {
   members       Member[]
   invitations   Invitation[]
 
+  projects       Project[]
+  projectMembers ProjectMember[]
+
   status       String? @default("ACTIVE")
   departmentId String?
 
@@ -96,6 +99,7 @@ model Organization {
   metadata    String?
   members     Member[]
   invitations Invitation[]
+  projects    Project[]
 
   @@unique([slug])
   @@map("organization")
@@ -144,4 +148,52 @@ model Department {
   updatedAt DateTime @updatedAt
 
   @@map("department")
+}
+
+// ------- Dominio AURA: proyectos y escenas (Sección 4.1, Fase 1) -------
+// Scene.simulations Simulation[] se omite: el modelo Simulation llega en Fase 5/6.
+model Project {
+  id             String          @id @default(cuid())
+  name           String
+  description    String?
+  ownerId        String
+  owner          User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  members        ProjectMember[]
+  scenes         Scene[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([ownerId])
+  @@index([organizationId])
+  @@map("project")
+}
+
+model ProjectMember {
+  projectId String
+  userId    String
+  role      String   @default("VIEWER") // ProjectRole: OWNER | EDITOR | VIEWER (zod)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([projectId, userId])
+  @@index([userId])
+  @@map("project_member")
+}
+
+model Scene {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name       String
+  signalFlow Json     @default("{}")
+  room       Json     @default("{}")
+  status     String   @default("DRAFT") // SceneStatus: DRAFT|FLOW_READY|ROOM_READY|SIMULATED
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([projectId])
+  @@map("scene")
 }
