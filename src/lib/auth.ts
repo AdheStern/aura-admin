@@ -16,6 +16,28 @@ export const auth = betterAuth({
     requireEmailVerification: false, // Cambiar a true en producción
   },
 
+  // Campos de dominio AURA sobre User (Sección 4.0 del doc maestro): declarados aquí
+  // para que Better Auth los conozca, validados como enum con zod en cada action —
+  // nunca con constraint de BD, para no pelear con la librería.
+  user: {
+    additionalFields: {
+      status: {
+        type: "string",
+        required: false,
+        defaultValue: "ACTIVE", // UserStatus: ACTIVE | SUSPENDED | INVITED (zod)
+        input: false,
+      },
+      departmentId: {
+        type: "string",
+        required: false,
+      },
+      managerId: {
+        type: "string",
+        required: false,
+      },
+    },
+  },
+
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
