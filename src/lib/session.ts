@@ -47,3 +47,22 @@ export const getActiveUser = cache(
     };
   },
 );
+
+export const requireSuperAdmin = cache(
+  async (): Promise<ActionResult<ActiveUser>> => {
+    const activeUser = await getActiveUser();
+    if (!activeUser.ok) return activeUser;
+
+    if (activeUser.data.role !== "SUPER_ADMIN") {
+      return {
+        ok: false,
+        error: {
+          code: "FORBIDDEN",
+          message: "Solo un administrador de plataforma gestiona catálogos",
+        },
+      };
+    }
+
+    return activeUser;
+  },
+);

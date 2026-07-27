@@ -197,3 +197,40 @@ model Scene {
   @@index([projectId])
   @@map("scene")
 }
+
+// ------- Dominio AURA: catálogos (Sección 4.2, Fase 1) -------
+// spec es la fuente de verdad del datasheet (validado con zod al ingresar). Las columnas planas
+// (brand/model/category, name/category) son solo para filtrar/listar y se derivan SIEMPRE del
+// spec ya validado en la action — nunca un input independiente que pueda divergir de él.
+model CatalogSpeaker {
+  id          String   @id @default(cuid())
+  brand       String
+  model       String
+  category    String // = spec.kind: point_source | line_array_element | subwoofer | monitor
+  spec        Json // SpeakerSpec v1 (contracts/speaker-spec.schema.ts)
+  specVersion String   @default("1")
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([brand, model])
+  @@index([category])
+  @@index([spec(ops: JsonbPathOps)], type: Gin)
+  @@map("catalog_speaker")
+}
+
+model CatalogMaterial {
+  id          String   @id @default(cuid())
+  name        String // = spec.name
+  category    String // = spec.category (texto libre, sin enum — distinto catálogo a catálogo)
+  spec        Json // MaterialSpec v1 (contracts/material-spec.schema.ts)
+  specVersion String   @default("1")
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([name])
+  @@index([spec(ops: JsonbPathOps)], type: Gin)
+  @@map("catalog_material")
+}

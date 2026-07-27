@@ -13,7 +13,9 @@
       "!.next",
       "!dist",
       "!build",
-      "!src/contracts/*.schema.json"
+      "!src/contracts/*.schema.json",
+      "!src/components/ui/chart.tsx",
+      "!src/components/ui/sidebar.tsx"
     ]
   },
   "formatter": {
