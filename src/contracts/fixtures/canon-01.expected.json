@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1",
+  "jobId": "job_canon01",
+  "meta": {
+    "engineVersion": "0.0.0-fixture",
+    "durationMs": 0,
+    "methodsUsed": ["sabine", "direct_field"],
+    "validity": {
+      "schroederHz": 86.3,
+      "warnings": []
+    }
+  },
+  "summary": {
+    "rt60": {
+      "125": 2.683,
+      "250": 2.683,
+      "500": 2.683,
+      "1000": 2.683,
+      "2000": 2.683,
+      "4000": 2.683
+    },
+    "splAvgDb": 104.8,
+    "splSigmaDb": 0,
+    "soundSpeedMps": 343.42,
+    "rt60SabineS": 2.683,
+    "rt60EyringS": 2.547,
+    "schroederHz": 86.3,
+    "roomConstantM2": 96.0,
+    "criticalDistanceM": 3.89,
+    "soundPowerLevelDb": 118.0,
+    "splDirectDb": 96.0,
+    "splReverberantDb": 104.2,
+    "splTotalDb": 104.8
+  },
+  "grids": {},
+  "alerts": [],
+  "recommendations": []
+}
