@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aura:contracts:v1:speaker-spec",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "point_source",
+        "line_array_element",
+        "subwoofer",
+        "monitor"
+      ]
+    },
+    "transducers": {
+      "type": "object",
+      "properties": {
+        "lf": {
+          "type": "string"
+        },
+        "hf": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "power": {
+      "type": "object",
+      "properties": {
+        "continuousW": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "programW": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "peakW": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "impedanceOhm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "continuousW",
+        "programW",
+        "peakW",
+        "impedanceOhm"
+      ],
+      "additionalProperties": {}
+    },
+    "sensitivity": {
+      "type": "object",
+      "properties": {
+        "dbSpl1w1m": {
+          "type": "number"
+        },
+        "reference": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "dbSpl1w1m",
+        "reference"
+      ],
+      "additionalProperties": {}
+    },
+    "maxSpl": {
+      "type": "object",
+      "properties": {
+        "continuousDb": {
+          "type": "number"
+        },
+        "peakDb": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "continuousDb",
+        "peakDb"
+      ],
+      "additionalProperties": {}
+    },
+    "frequencyResponse": {
+      "type": "object",
+      "properties": {
+        "rangeHz": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          ]
+        },
+        "toleranceDb": {
+          "type": "number",
+          "minimum": 0
+        },
+        "curve": {
+          "minItems": 2,
+          "type": "array",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "rangeHz",
+        "toleranceDb",
+        "curve"
+      ],
+      "additionalProperties": {}
+    },
+    "directivity": {
+      "type": "object",
+      "properties": {
+        "nominalCoverage": {
+          "type": "object",
+          "properties": {
+            "hDeg": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 360
+            },
+            "vDeg": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 360
+            }
+          },
+          "required": [
+            "hDeg",
+            "vDeg"
+          ],
+          "additionalProperties": {}
+        },
+        "diByBand": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "enum": [
+              "125",
+              "250",
+              "500",
+              "1000",
+              "2000",
+              "4000"
+            ]
+          },
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "balloon": {
+          "anyOf": [
+            {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "enum": [
+                  "125",
+                  "250",
+                  "500",
+                  "1000",
+                  "2000",
+                  "4000"
+                ]
+              },
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "nominalCoverage",
+        "diByBand"
+      ],
+      "additionalProperties": {}
+    },
+    "physical": {
+      "type": "object",
+      "properties": {
+        "weightKg": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "dimensionsMm": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          ]
+        },
+        "rigging": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "weightKg",
+        "dimensionsMm",
+        "rigging"
+      ],
+      "additionalProperties": {}
+    },
+    "electrical": {
+      "type": "object",
+      "properties": {
+        "connectors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "activePowered": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "connectors",
+        "activePowered"
+      ],
+      "additionalProperties": {}
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "kind",
+    "transducers",
+    "power",
+    "sensitivity",
+    "maxSpl",
+    "frequencyResponse",
+    "directivity",
+    "physical",
+    "electrical"
+  ],
+  "additionalProperties": {},
+  "title": "SpeakerSpec v1",
+  "description": "Datasheet de un parlante del catálogo. Alimenta el campo directo (sensibilidad, respuesta, directividad) y los límites de headroom de la simulación."
+}

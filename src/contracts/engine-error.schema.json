@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aura:contracts:v1:engine-error",
+  "type": "object",
+  "properties": {
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "INVALID_PAYLOAD",
+            "UNSUPPORTED_SCHEMA_VERSION",
+            "GEOMETRY_INVALID",
+            "BUDGET_EXCEEDED",
+            "ENGINE_FAILURE",
+            "LLM_UNAVAILABLE"
+          ]
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {}
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "additionalProperties": {}
+    }
+  },
+  "required": [
+    "error"
+  ],
+  "additionalProperties": {},
+  "title": "EngineError v1",
+  "description": "Envelope uniforme de error del motor, en cualquier endpoint de /v1."
+}

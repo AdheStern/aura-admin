@@ -2,6 +2,7 @@
 
 export * from "./bands";
 export * from "./material-spec.schema";
+export * from "./registry";
 export * from "./room-geometry.schema";
 export * from "./simulation-request.schema";
 export * from "./simulation-result.schema";

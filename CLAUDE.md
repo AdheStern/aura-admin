@@ -8,6 +8,7 @@ App de administración de AURA (simulación acústica de recintos cerrados). Doc
 
 ## Comandos
 pnpm dev · pnpm test · pnpm biome check --write · pnpm prisma migrate dev · pnpm typecheck
+pnpm contracts:build (regenera src/contracts/*.schema.json desde los zod)
 
 ## Reglas duras (resumen de secciones 5 y 9 del doc maestro)
 - Cabecera con ruta y propósito en TODO archivo.
@@ -16,6 +17,7 @@ pnpm dev · pnpm test · pnpm biome check --write · pnpm prisma migrate dev · 
 - Authz de proyectos SOLO vía resolveProjectAccess(). Prisma solo en queries/actions.
 - Comentarios: solo POR QUÉ / física / trampa / limitación. Cero narración o changelog.
 - Contratos en src/contracts/ NO se editan sin el procedimiento de la sección 7 del doc maestro.
+  Los *.schema.json son generados: se edita el *.schema.ts y se corre pnpm contracts:build.
 - Unidades en los nombres: levelDb, delayMs, temperatureC.
 
 ## Contexto rápido

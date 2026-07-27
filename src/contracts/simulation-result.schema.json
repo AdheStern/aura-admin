@@ -1,0 +1,346 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aura:contracts:v1:simulation-result",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1"
+    },
+    "jobId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "engineVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "durationMs": {
+          "type": "number",
+          "minimum": 0
+        },
+        "methodsUsed": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "sabine",
+              "eyring",
+              "hybrid",
+              "direct_field"
+            ]
+          }
+        },
+        "validity": {
+          "type": "object",
+          "properties": {
+            "schroederHz": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "warnings": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "schroederHz",
+            "warnings"
+          ],
+          "additionalProperties": {}
+        }
+      },
+      "required": [
+        "engineVersion",
+        "durationMs",
+        "methodsUsed",
+        "validity"
+      ],
+      "additionalProperties": {}
+    },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "rt60": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "enum": [
+              "125",
+              "250",
+              "500",
+              "1000",
+              "2000",
+              "4000"
+            ]
+          },
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "edt": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "enum": [
+              "125",
+              "250",
+              "500",
+              "1000",
+              "2000",
+              "4000"
+            ]
+          },
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "c50": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "enum": [
+              "125",
+              "250",
+              "500",
+              "1000",
+              "2000",
+              "4000"
+            ]
+          },
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "c80": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "enum": [
+              "125",
+              "250",
+              "500",
+              "1000",
+              "2000",
+              "4000"
+            ]
+          },
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "splAvgDb": {
+          "type": "number"
+        },
+        "splSigmaDb": {
+          "type": "number"
+        },
+        "splMinDb": {
+          "type": "number"
+        },
+        "splMaxDb": {
+          "type": "number"
+        },
+        "c50AvgDb": {
+          "type": "number"
+        },
+        "c80AvgDb": {
+          "type": "number"
+        },
+        "d50AvgPct": {
+          "type": "number"
+        },
+        "drrAvgDb": {
+          "type": "number"
+        },
+        "soundSpeedMps": {
+          "type": "number"
+        },
+        "rt60SabineS": {
+          "type": "number"
+        },
+        "rt60EyringS": {
+          "type": "number"
+        },
+        "schroederHz": {
+          "type": "number"
+        },
+        "roomConstantM2": {
+          "type": "number"
+        },
+        "criticalDistanceM": {
+          "type": "number"
+        },
+        "soundPowerLevelDb": {
+          "type": "number"
+        },
+        "splDirectDb": {
+          "type": "number"
+        },
+        "splReverberantDb": {
+          "type": "number"
+        },
+        "splTotalDb": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "grids": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          },
+          "valuesDbByBand": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "enum": [
+                "125",
+                "250",
+                "500",
+                "1000",
+                "2000",
+                "4000"
+              ]
+            },
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "valuesDbA": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "points"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "alerts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string",
+            "minLength": 1
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "warn",
+              "err"
+            ]
+          },
+          "zone": {
+            "type": "string"
+          },
+          "detail": {}
+        },
+        "required": [
+          "metric",
+          "level"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rule": {
+            "type": "string",
+            "minLength": 1
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "action": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "additionalProperties": {}
+          },
+          "evidence": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "rule",
+          "priority",
+          "action",
+          "text"
+        ],
+        "additionalProperties": {}
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "meta",
+    "summary",
+    "alerts",
+    "recommendations"
+  ],
+  "additionalProperties": {},
+  "title": "SimulationResult v1",
+  "description": "Resultado que el motor entrega por callback a /api/internal/jobs/:jobId: métricas agregadas, grillas densas, alertas y recomendaciones deterministas."
+}

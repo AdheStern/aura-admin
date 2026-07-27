@@ -1,0 +1,990 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aura:contracts:v1:simulation-request",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1"
+    },
+    "jobId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "simulationId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "simple",
+            "advanced"
+          ]
+        },
+        "methods": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "statistical",
+              "hybrid",
+              "direct_field"
+            ]
+          }
+        },
+        "bands": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "number",
+            "enum": [
+              125,
+              250,
+              500,
+              1000,
+              2000,
+              4000
+            ]
+          }
+        },
+        "ism": {
+          "type": "object",
+          "properties": {
+            "maxOrder": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 17
+            }
+          },
+          "required": [
+            "maxOrder"
+          ],
+          "additionalProperties": false
+        },
+        "rayTracing": {
+          "type": "object",
+          "properties": {
+            "nRays": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            "seed": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "nRays",
+            "seed"
+          ],
+          "additionalProperties": false
+        },
+        "grid": {
+          "type": "object",
+          "properties": {
+            "resolutionM": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "earHeightM": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "resolutionM",
+            "earHeightM"
+          ],
+          "additionalProperties": false
+        },
+        "summation": {
+          "type": "string",
+          "enum": [
+            "energy",
+            "complex"
+          ]
+        }
+      },
+      "required": [
+        "mode",
+        "methods",
+        "bands",
+        "grid",
+        "summation"
+      ],
+      "additionalProperties": false
+    },
+    "environment": {
+      "type": "object",
+      "properties": {
+        "temperatureC": {
+          "type": "number",
+          "minimum": -20,
+          "maximum": 60
+        },
+        "humidityPct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "occupancyPct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "temperatureC",
+        "humidityPct",
+        "occupancyPct"
+      ],
+      "additionalProperties": false
+    },
+    "room": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "type": "string",
+          "const": "1"
+        },
+        "units": {
+          "type": "string",
+          "const": "m"
+        },
+        "footprint": {
+          "type": "object",
+          "properties": {
+            "vertices": {
+              "minItems": 3,
+              "type": "array",
+              "items": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              }
+            }
+          },
+          "required": [
+            "vertices"
+          ],
+          "additionalProperties": false
+        },
+        "height": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "flat",
+                "gable"
+              ]
+            },
+            "h": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "type",
+            "h"
+          ],
+          "additionalProperties": false
+        },
+        "surfaces": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "wall",
+                  "floor",
+                  "ceiling"
+                ]
+              },
+              "materialId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "id",
+              "type",
+              "materialId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "obstacles": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "type": {
+                    "type": "string",
+                    "const": "pillar"
+                  },
+                  "shape": {
+                    "type": "string",
+                    "const": "rect"
+                  },
+                  "at": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "size": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
+                    ]
+                  },
+                  "materialId": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "id",
+                  "type",
+                  "shape",
+                  "at",
+                  "size",
+                  "materialId"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "type": {
+                    "type": "string",
+                    "const": "pillar"
+                  },
+                  "shape": {
+                    "type": "string",
+                    "const": "circle"
+                  },
+                  "at": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "size": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
+                    ]
+                  },
+                  "materialId": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "id",
+                  "type",
+                  "shape",
+                  "at",
+                  "size",
+                  "materialId"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "openings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "window",
+                  "door"
+                ]
+              },
+              "surfaceId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rect": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                ]
+              },
+              "materialId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "id",
+              "type",
+              "surfaceId",
+              "rect",
+              "materialId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "zones": {
+          "type": "object",
+          "properties": {
+            "stage": {
+              "type": "object",
+              "properties": {
+                "polygon": {
+                  "minItems": 3,
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                },
+                "elevation": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "polygon",
+                "elevation"
+              ],
+              "additionalProperties": false
+            },
+            "audience": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "polygon": {
+                    "minItems": 3,
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    }
+                  },
+                  "earHeight": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "seated": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "polygon",
+                  "earHeight",
+                  "seated"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "audience"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "units",
+        "footprint",
+        "height",
+        "surfaces",
+        "obstacles",
+        "openings",
+        "zones"
+      ],
+      "additionalProperties": false,
+      "title": "RoomGeometry v1",
+      "description": "Documento geométrico del recinto: contrato central entre el editor 2D/3D y el motor. Footprint extruido a una altura, materiales por superficie, obstáculos, aberturas y zonas."
+    },
+    "materials": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "type": "string",
+            "const": "1"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "category": {
+            "type": "string",
+            "minLength": 1
+          },
+          "absorption": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "enum": [
+                "125",
+                "250",
+                "500",
+                "1000",
+                "2000",
+                "4000"
+              ]
+            },
+            "additionalProperties": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1.2
+            },
+            "required": [
+              "125",
+              "250",
+              "500",
+              "1000",
+              "2000",
+              "4000"
+            ]
+          },
+          "scattering": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "enum": [
+                "125",
+                "250",
+                "500",
+                "1000",
+                "2000",
+                "4000"
+              ]
+            },
+            "additionalProperties": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "required": [
+              "125",
+              "250",
+              "500",
+              "1000",
+              "2000",
+              "4000"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "nrc": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1.2
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "name",
+          "category",
+          "absorption",
+          "scattering",
+          "source"
+        ],
+        "additionalProperties": {},
+        "title": "MaterialSpec v1",
+        "description": "Coeficientes por banda de octava de un material del catálogo: α (absorción) y s (dispersión). Se asignan por superficie y gobiernan RT60 y la cola reverberante."
+      }
+    },
+    "sources": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "catalogRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "position": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "rotationDeg": {
+            "type": "object",
+            "properties": {
+              "yaw": {
+                "type": "number"
+              },
+              "pitch": {
+                "type": "number"
+              },
+              "roll": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "yaw",
+              "pitch",
+              "roll"
+            ],
+            "additionalProperties": false
+          },
+          "levelDb": {
+            "type": "number"
+          },
+          "polarityInverted": {
+            "type": "boolean"
+          },
+          "delayMs": {
+            "type": "number",
+            "minimum": 0
+          },
+          "electricalPowerW": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "spec": {
+            "type": "object",
+            "properties": {
+              "schemaVersion": {
+                "type": "string",
+                "const": "1"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "point_source",
+                  "line_array_element",
+                  "subwoofer",
+                  "monitor"
+                ]
+              },
+              "transducers": {
+                "type": "object",
+                "properties": {
+                  "lf": {
+                    "type": "string"
+                  },
+                  "hf": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "power": {
+                "type": "object",
+                "properties": {
+                  "continuousW": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "programW": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "peakW": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "impedanceOhm": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "continuousW",
+                  "programW",
+                  "peakW",
+                  "impedanceOhm"
+                ],
+                "additionalProperties": {}
+              },
+              "sensitivity": {
+                "type": "object",
+                "properties": {
+                  "dbSpl1w1m": {
+                    "type": "number"
+                  },
+                  "reference": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "dbSpl1w1m",
+                  "reference"
+                ],
+                "additionalProperties": {}
+              },
+              "maxSpl": {
+                "type": "object",
+                "properties": {
+                  "continuousDb": {
+                    "type": "number"
+                  },
+                  "peakDb": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "continuousDb",
+                  "peakDb"
+                ],
+                "additionalProperties": {}
+              },
+              "frequencyResponse": {
+                "type": "object",
+                "properties": {
+                  "rangeHz": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
+                    ]
+                  },
+                  "toleranceDb": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "curve": {
+                    "minItems": 2,
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "rangeHz",
+                  "toleranceDb",
+                  "curve"
+                ],
+                "additionalProperties": {}
+              },
+              "directivity": {
+                "type": "object",
+                "properties": {
+                  "nominalCoverage": {
+                    "type": "object",
+                    "properties": {
+                      "hDeg": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "maximum": 360
+                      },
+                      "vDeg": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "maximum": 360
+                      }
+                    },
+                    "required": [
+                      "hDeg",
+                      "vDeg"
+                    ],
+                    "additionalProperties": {}
+                  },
+                  "diByBand": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "enum": [
+                        "125",
+                        "250",
+                        "500",
+                        "1000",
+                        "2000",
+                        "4000"
+                      ]
+                    },
+                    "additionalProperties": {
+                      "type": "number"
+                    }
+                  },
+                  "balloon": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string",
+                          "enum": [
+                            "125",
+                            "250",
+                            "500",
+                            "1000",
+                            "2000",
+                            "4000"
+                          ]
+                        },
+                        "additionalProperties": {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "nominalCoverage",
+                  "diByBand"
+                ],
+                "additionalProperties": {}
+              },
+              "physical": {
+                "type": "object",
+                "properties": {
+                  "weightKg": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "dimensionsMm": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
+                    ]
+                  },
+                  "rigging": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "weightKg",
+                  "dimensionsMm",
+                  "rigging"
+                ],
+                "additionalProperties": {}
+              },
+              "electrical": {
+                "type": "object",
+                "properties": {
+                  "connectors": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "activePowered": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "connectors",
+                  "activePowered"
+                ],
+                "additionalProperties": {}
+              }
+            },
+            "required": [
+              "schemaVersion",
+              "kind",
+              "transducers",
+              "power",
+              "sensitivity",
+              "maxSpl",
+              "frequencyResponse",
+              "directivity",
+              "physical",
+              "electrical"
+            ],
+            "additionalProperties": {},
+            "title": "SpeakerSpec v1",
+            "description": "Datasheet de un parlante del catálogo. Alimenta el campo directo (sensibilidad, respuesta, directividad) y los límites de headroom de la simulación."
+          },
+          "programSpectrum": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "catalogRef",
+          "position",
+          "rotationDeg",
+          "levelDb",
+          "polarityInverted",
+          "delayMs",
+          "electricalPowerW",
+          "spec",
+          "programSpectrum"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "llm": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": [
+            "anthropic",
+            "google",
+            "deepseek"
+          ]
+        },
+        "apiKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "provider",
+        "apiKey",
+        "enabled"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "simulationId",
+    "config",
+    "environment",
+    "room",
+    "materials",
+    "sources"
+  ],
+  "additionalProperties": false,
+  "title": "SimulationRequest v1",
+  "description": "Payload autocontenido que aura-admin envía a POST /v1/simulations. Incluye geometría, materiales y specs ya resueltos: el motor es una función pura sobre este documento."
+}

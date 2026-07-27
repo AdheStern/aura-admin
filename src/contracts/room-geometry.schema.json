@@ -1,0 +1,343 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aura:contracts:v1:room-geometry",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1"
+    },
+    "units": {
+      "type": "string",
+      "const": "m"
+    },
+    "footprint": {
+      "type": "object",
+      "properties": {
+        "vertices": {
+          "minItems": 3,
+          "type": "array",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "vertices"
+      ],
+      "additionalProperties": false
+    },
+    "height": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "flat",
+            "gable"
+          ]
+        },
+        "h": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "type",
+        "h"
+      ],
+      "additionalProperties": false
+    },
+    "surfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "wall",
+              "floor",
+              "ceiling"
+            ]
+          },
+          "materialId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "materialId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "obstacles": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "type": "string",
+                "const": "pillar"
+              },
+              "shape": {
+                "type": "string",
+                "const": "rect"
+              },
+              "at": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "size": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                ]
+              },
+              "materialId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "id",
+              "type",
+              "shape",
+              "at",
+              "size",
+              "materialId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "type": "string",
+                "const": "pillar"
+              },
+              "shape": {
+                "type": "string",
+                "const": "circle"
+              },
+              "at": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "size": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                ]
+              },
+              "materialId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "id",
+              "type",
+              "shape",
+              "at",
+              "size",
+              "materialId"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "openings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "window",
+              "door"
+            ]
+          },
+          "surfaceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rect": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            ]
+          },
+          "materialId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "surfaceId",
+          "rect",
+          "materialId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "zones": {
+      "type": "object",
+      "properties": {
+        "stage": {
+          "type": "object",
+          "properties": {
+            "polygon": {
+              "minItems": 3,
+              "type": "array",
+              "items": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              }
+            },
+            "elevation": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "polygon",
+            "elevation"
+          ],
+          "additionalProperties": false
+        },
+        "audience": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "polygon": {
+                "minItems": 3,
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              "earHeight": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "seated": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "polygon",
+              "earHeight",
+              "seated"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "audience"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "units",
+    "footprint",
+    "height",
+    "surfaces",
+    "obstacles",
+    "openings",
+    "zones"
+  ],
+  "additionalProperties": false,
+  "title": "RoomGeometry v1",
+  "description": "Documento geométrico del recinto: contrato central entre el editor 2D/3D y el motor. Footprint extruido a una altura, materiales por superficie, obstáculos, aberturas y zonas."
+}
