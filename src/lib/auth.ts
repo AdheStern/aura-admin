@@ -30,10 +30,12 @@ export const auth = betterAuth({
       departmentId: {
         type: "string",
         required: false,
+        input: false,
       },
       managerId: {
         type: "string",
         required: false,
+        input: false,
       },
     },
   },
@@ -51,8 +53,6 @@ export const auth = betterAuth({
   },
 
   plugins: [
-    nextCookies(),
-
     // Plugin de administración
     admin({
       impersonationSessionDuration: 60 * 60, // 1 hora
@@ -64,6 +64,11 @@ export const auth = betterAuth({
       organizationLimit: 5, // Límite de organizaciones por usuario
       invitationExpiresIn: 60 * 60 * 24 * 7, // 7 días
     }),
+
+    // nextCookies() reenvía el Set-Cookie de auth.api.* a next/headers cuando se llama
+    // desde una Server Action. Debe ir último: así ve las cookies que setean los plugins
+    // anteriores (Better Auth avisa si no es el último y algún plugin declara hooks.after).
+    nextCookies(),
   ],
 
   // Configuración adicional de seguridad

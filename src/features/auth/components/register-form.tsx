@@ -6,9 +6,9 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { signUpAction } from "@/features/auth/actions";
 import { GoogleButton } from "@/features/auth/components/google-button";
 import { signUpSchema } from "@/features/auth/schemas";
-import { signUp } from "@/lib/auth-client";
 
 type RegisterFormState = { error: string | null };
 
@@ -29,9 +29,13 @@ export function RegisterForm() {
         return { error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
       }
 
-      const { error } = await signUp.email(parsed.data);
-      if (error) {
-        return { error: error.message ?? "No pudimos crear tu cuenta" };
+      const result = await signUpAction(
+        parsed.data.email,
+        parsed.data.password,
+        parsed.data.name,
+      );
+      if (!result.success) {
+        return { error: result.message };
       }
 
       router.push("/");

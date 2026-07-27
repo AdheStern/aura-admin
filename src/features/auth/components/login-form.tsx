@@ -6,9 +6,9 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { signInAction } from "@/features/auth/actions";
 import { GoogleButton } from "@/features/auth/components/google-button";
 import { signInSchema } from "@/features/auth/schemas";
-import { signIn } from "@/lib/auth-client";
 
 type LoginFormState = { error: string | null };
 
@@ -25,9 +25,12 @@ export function LoginForm() {
         return { error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
       }
 
-      const { error } = await signIn.email(parsed.data);
-      if (error) {
-        return { error: error.message ?? "No pudimos iniciar sesión" };
+      const result = await signInAction(
+        parsed.data.email,
+        parsed.data.password,
+      );
+      if (!result.success) {
+        return { error: result.message };
       }
 
       router.push("/");
