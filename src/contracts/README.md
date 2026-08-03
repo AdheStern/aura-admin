@@ -61,6 +61,18 @@ no conozca, y el CI de cada repo valida sus fixtures contra su copia local.
 - **`MicrophoneSpec` sin directividad numérica**: el micrófono no se simula acústicamente en v1 y
   la realimentación (lo único que necesitaría integrar su patrón polar) está diferida a v2 por el
   doc. El patrón viaja como etiqueta enumerada.
+- **Scattering derivado por familia de superficie.** Ninguna tabla de absorción publica s: α y s se
+  miden en ensayos distintos (ISO 354 e ISO 17497). El doc exige s en las seis bandas pero no dice
+  de dónde sale. El seed lo deriva con cinco perfiles (`lisa`, `texturada`, `porosa`, `plegada`,
+  `audiencia`) en `prisma/seed/derive.ts`, anclados en el ejemplo del propio doc. Todos crecen con
+  la frecuencia porque s depende del tamaño del relieve frente a λ.
+- **`MaterialSpec.category` es texto libre, no enum.** A diferencia del `kind` de los equipos, no
+  se puede derivar del contrato: el filtro de la UI se llena con un `distinct` en BD. Convención en
+  uso: español, minúsculas, sin tildes.
+- **Campo `dataSource` en los ítems del seed.** La regla (3) de ingesta preserva campos
+  desconocidos, y se aprovecha para que cada datasheet cargado declare qué se transcribió de la
+  ficha y qué se derivó. No está en el contrato a propósito: es metadato de procedencia, no parte
+  del datasheet.
 - **α hasta 1.2** en `MaterialSpec.absorption`: los coeficientes Sabine medidos en cámara
   reverberante (ISO 354) superan 1.0 por difracción de bordes, y las tablas estándar traen
   valores como 1.05. `scattering` sí queda acotado a [0, 1] porque es una fracción real.

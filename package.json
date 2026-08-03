@@ -10,6 +10,7 @@
     "format": "biome format --write",
     "typecheck": "tsc --noEmit",
     "contracts:build": "tsx scripts/generate-json-schemas.ts",
+    "db:seed": "prisma db seed",
     "test": "vitest run",
     "test:watch": "vitest",
     "prepare": "lefthook install"
