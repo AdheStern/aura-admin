@@ -1,5 +1,7 @@
-// src/features/catalogs/components/speaker-frequency-response-chart.tsx — 1 serie: sin leyenda
+// src/features/catalogs/components/frequency-response-chart.tsx — 1 serie: sin leyenda
 // (el título ya la nombra), marcadores en los puntos reales del datasheet (no es muestreo denso).
+// Lo comparten parlante y micrófono: ambos tabulan la curva como [Hz, dB] (contracts/
+// frequency-response.ts), así que las dos se leen en la misma escala logarítmica.
 
 "use client";
 
@@ -10,16 +12,15 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import type { SpeakerSpec } from "@/contracts/speaker-spec.schema";
 
 const chartConfig = {
   db: { label: "dB relativos", color: "var(--chart-1)" },
 } satisfies ChartConfig;
 
-export function SpeakerFrequencyResponseChart({
+export function FrequencyResponseChart({
   curve,
 }: {
-  curve: SpeakerSpec["frequencyResponse"]["curve"];
+  curve: [number, number][];
 }) {
   const data = curve.map(([hz, db]) => ({ hz, db }));
 

@@ -21,6 +21,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import { CATALOG_TYPES } from "@/features/catalogs/catalog-types";
 import type { ActiveUser } from "@/lib/session";
 
 export function AppSidebar({ activeUser }: { activeUser: ActiveUser }) {
@@ -67,20 +68,15 @@ export function AppSidebar({ activeUser }: { activeUser: ActiveUser }) {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton
-                          render={<Link href="/catalogs/speakers" />}
-                        >
-                          Parlantes
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton
-                          render={<Link href="/catalogs/materials" />}
-                        >
-                          Materiales
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
+                      {CATALOG_TYPES.map((type) => (
+                        <SidebarMenuSubItem key={type.slug}>
+                          <SidebarMenuSubButton
+                            render={<Link href={`/catalogs/${type.slug}`} />}
+                          >
+                            {type.label}
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
                     </SidebarMenuSub>
                   </CollapsibleContent>
                 </SidebarMenuItem>

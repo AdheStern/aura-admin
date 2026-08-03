@@ -5,9 +5,7 @@
 
 import { z } from "zod";
 import { octaveBandKeySchema, partialByBandSchema } from "./bands";
-
-/** Punto de la curva de respuesta: [Hz, dB relativos]. El motor la remuestrea a bandas. */
-const responsePointSchema = z.tuple([z.number().positive(), z.number()]);
+import { rangeHzSchema, responsePointSchema } from "./frequency-response";
 
 /** Balloon data opcional: [banda][azimut][elevación] en dB, si el fabricante la publica. */
 const balloonSchema = z.partialRecord(
@@ -49,7 +47,7 @@ export const speakerSpecSchema = z
     }),
 
     frequencyResponse: z.looseObject({
-      rangeHz: z.tuple([z.number().positive(), z.number().positive()]),
+      rangeHz: rangeHzSchema,
       toleranceDb: z.number().nonnegative(),
       /** Fuera de rangeHz el motor extrapola a −12 dB/octava (Apéndice A.3). */
       curve: z.array(responsePointSchema).min(2),

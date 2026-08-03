@@ -7,9 +7,25 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import Ajv2020 from "ajv/dist/2020";
 import { describe, expect, it } from "vitest";
+import {
+  EXAMPLE_AMPLIFIER_SPEC,
+  EXAMPLE_CONSOLE_SPEC,
+  EXAMPLE_MATERIAL_SPEC,
+  EXAMPLE_MICROPHONE_SPEC,
+  EXAMPLE_SPEAKER_SPEC,
+} from "@/contracts/examples";
 import canonExpected from "@/contracts/fixtures/canon-01.expected.json";
 import canonRequest from "@/contracts/fixtures/canon-01.request.json";
 import { CONTRACTS, toContractJsonSchema } from "@/contracts/registry";
+
+/** Los ejemplos que siembran los formularios de alta, con el schema que deben satisfacer. */
+const CATALOG_EXAMPLES = [
+  ["speaker-spec.schema.json", EXAMPLE_SPEAKER_SPEC],
+  ["material-spec.schema.json", EXAMPLE_MATERIAL_SPEC],
+  ["microphone-spec.schema.json", EXAMPLE_MICROPHONE_SPEC],
+  ["console-spec.schema.json", EXAMPLE_CONSOLE_SPEC],
+  ["amplifier-spec.schema.json", EXAMPLE_AMPLIFIER_SPEC],
+] as const;
 
 const CONTRACTS_DIR = path.join(process.cwd(), "src", "contracts");
 
@@ -48,6 +64,15 @@ describe("JSON Schemas v1", () => {
     );
     expect(new Set(ids).size).toBe(CONTRACTS.length);
     for (const id of ids) expect(id).toMatch(/^urn:aura:contracts:v1:/);
+  });
+
+  // Los formularios de alta siembran el textarea con estos ejemplos: si uno deja de validar,
+  // el administrador recibiría un error al guardar un datasheet que la app le precargó.
+  it.each(CATALOG_EXAMPLES)("el ejemplo de %s valida", (fileName, example) => {
+    const validate = compile(fileName);
+    expect(validate(example), JSON.stringify(validate.errors, null, 2)).toBe(
+      true,
+    );
   });
 });
 
@@ -126,5 +151,58 @@ describe("Estricto vs. laxo", () => {
     const material = structuredClone(canonRequest.materials.mat_canon);
     material.absorption["125"] = 5;
     expect(validate(material)).toBe(false);
+  });
+
+  it("los catálogos de equipo aceptan un campo desconocido", () => {
+    for (const [fileName, example] of CATALOG_EXAMPLES) {
+      const validate = compile(fileName);
+      expect(validate({ ...example, campoFuturo: "x" }), fileName).toBe(true);
+    }
+  });
+});
+
+// Los handles de los nodos console y pa salen de estos campos (Sección 5.1), así que un conteo
+// inválido no es un dato feo: es un grafo de señal imposible de dibujar.
+describe("Contratos de equipo: handles y potencia", () => {
+  it("la consola rechaza un conteo de canales no entero o nulo", () => {
+    const validate = compile("console-spec.schema.json");
+    const io = EXAMPLE_CONSOLE_SPEC.io;
+    expect(
+      validate({ ...EXAMPLE_CONSOLE_SPEC, io: { ...io, inputChannels: 0 } }),
+    ).toBe(false);
+    expect(
+      validate({ ...EXAMPLE_CONSOLE_SPEC, io: { ...io, outputBuses: 2.5 } }),
+    ).toBe(false);
+  });
+
+  it("el amplificador exige la potencia a 8Ω y deja el resto opcional", () => {
+    const validate = compile("amplifier-spec.schema.json");
+    expect(
+      validate({ ...EXAMPLE_AMPLIFIER_SPEC, powerPerChannelW: { "8": 500 } }),
+    ).toBe(true);
+    expect(
+      validate({ ...EXAMPLE_AMPLIFIER_SPEC, powerPerChannelW: { "4": 750 } }),
+    ).toBe(false);
+  });
+
+  it("el micrófono exige al menos dos puntos de curva para poder graficarla", () => {
+    const validate = compile("microphone-spec.schema.json");
+    const frequencyResponse = {
+      ...EXAMPLE_MICROPHONE_SPEC.frequencyResponse,
+      curve: [[1000, 0]],
+    };
+    expect(validate({ ...EXAMPLE_MICROPHONE_SPEC, frequencyResponse })).toBe(
+      false,
+    );
+  });
+
+  it("el micrófono acepta que falte selfNoise (los dinámicos no lo publican)", () => {
+    const validate = compile("microphone-spec.schema.json");
+    const { selfNoise: _omitted, ...withoutSelfNoise } =
+      EXAMPLE_MICROPHONE_SPEC;
+    expect(
+      validate(withoutSelfNoise),
+      JSON.stringify(validate.errors, null, 2),
+    ).toBe(true);
   });
 });

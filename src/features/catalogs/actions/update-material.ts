@@ -5,6 +5,10 @@
 import type { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { materialSpecSchema } from "@/contracts/material-spec.schema";
+import {
+  firstIssue,
+  validationError,
+} from "@/features/catalogs/schemas/action-errors";
 import { parseSpecJson } from "@/features/catalogs/schemas/parse-spec-json";
 import { updateMaterialSchema } from "@/features/catalogs/schemas/update-material";
 import { db } from "@/lib/db";
@@ -24,23 +28,10 @@ export async function updateMaterial(
     specJson,
     verified,
   });
-  if (!parsed.success) {
-    return {
-      ok: false,
-      error: {
-        code: "VALIDATION_ERROR",
-        message: parsed.error.issues[0]?.message ?? "Datos inválidos",
-      },
-    };
-  }
+  if (!parsed.success) return validationError(firstIssue(parsed.error));
 
   const spec = parseSpecJson(materialSpecSchema, parsed.data.specJson);
-  if (!spec.ok) {
-    return {
-      ok: false,
-      error: { code: "VALIDATION_ERROR", message: spec.message },
-    };
-  }
+  if (!spec.ok) return validationError(spec.message);
 
   await db.catalogMaterial.update({
     where: { id: parsed.data.materialId },

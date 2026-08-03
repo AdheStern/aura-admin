@@ -1,8 +1,17 @@
 // src/features/catalogs/actions/index.ts — barrel
 
+export * from "@/features/catalogs/actions/create-amplifier";
+export * from "@/features/catalogs/actions/create-console";
 export * from "@/features/catalogs/actions/create-material";
+export * from "@/features/catalogs/actions/create-microphone";
 export * from "@/features/catalogs/actions/create-speaker";
+export * from "@/features/catalogs/actions/delete-amplifier";
+export * from "@/features/catalogs/actions/delete-console";
 export * from "@/features/catalogs/actions/delete-material";
+export * from "@/features/catalogs/actions/delete-microphone";
 export * from "@/features/catalogs/actions/delete-speaker";
+export * from "@/features/catalogs/actions/update-amplifier";
+export * from "@/features/catalogs/actions/update-console";
 export * from "@/features/catalogs/actions/update-material";
+export * from "@/features/catalogs/actions/update-microphone";
 export * from "@/features/catalogs/actions/update-speaker";

@@ -3,7 +3,10 @@
 // que añadir un contrato sin su JSON Schema (o al revés) rompe el build, nunca pasa callado.
 
 import { z } from "zod";
+import { amplifierSpecSchema } from "./amplifier-spec.schema";
+import { consoleSpecSchema } from "./console-spec.schema";
 import { materialSpecSchema } from "./material-spec.schema";
+import { microphoneSpecSchema } from "./microphone-spec.schema";
 import { roomGeometrySchema } from "./room-geometry.schema";
 import { simulationRequestSchema } from "./simulation-request.schema";
 import {
@@ -33,6 +36,21 @@ export const CONTRACTS: readonly ContractDefinition[] = [
     fileName: "material-spec.schema.json",
     id: "urn:aura:contracts:v1:material-spec",
     schema: materialSpecSchema,
+  },
+  {
+    fileName: "microphone-spec.schema.json",
+    id: "urn:aura:contracts:v1:microphone-spec",
+    schema: microphoneSpecSchema,
+  },
+  {
+    fileName: "console-spec.schema.json",
+    id: "urn:aura:contracts:v1:console-spec",
+    schema: consoleSpecSchema,
+  },
+  {
+    fileName: "amplifier-spec.schema.json",
+    id: "urn:aura:contracts:v1:amplifier-spec",
+    schema: amplifierSpecSchema,
   },
   {
     fileName: "room-geometry.schema.json",

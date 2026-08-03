@@ -1,10 +1,11 @@
 // src/app/(app)/catalogs/speakers/[speakerId]/page.tsx
 
 import { notFound } from "next/navigation";
-import { DeleteSpeakerAlert } from "@/features/catalogs/components/delete-speaker-alert";
+import { deleteSpeaker } from "@/features/catalogs/actions";
+import { DeleteCatalogAlert } from "@/features/catalogs/components/delete-catalog-alert";
 import { EditSpeakerDialog } from "@/features/catalogs/components/edit-speaker-dialog";
+import { FrequencyResponseChart } from "@/features/catalogs/components/frequency-response-chart";
 import { SpeakerDatasheet } from "@/features/catalogs/components/speaker-datasheet";
-import { SpeakerFrequencyResponseChart } from "@/features/catalogs/components/speaker-frequency-response-chart";
 import { VerifiedBadge } from "@/features/catalogs/components/verified-badge";
 import { getSpeaker } from "@/features/catalogs/queries";
 
@@ -34,9 +35,11 @@ export default async function SpeakerDetailPage({
             specJson={JSON.stringify(speaker.specRaw, null, 2)}
             initialVerified={speaker.verified}
           />
-          <DeleteSpeakerAlert
-            speakerId={speaker.id}
-            speakerLabel={`${speaker.brand} ${speaker.model}`}
+          <DeleteCatalogAlert
+            itemId={speaker.id}
+            itemLabel={`${speaker.brand} ${speaker.model}`}
+            onDelete={deleteSpeaker}
+            redirectTo="/catalogs/speakers"
           />
         </div>
       </div>
@@ -51,7 +54,7 @@ export default async function SpeakerDetailPage({
             <h2 className="font-heading text-lg font-medium">
               Respuesta en frecuencia
             </h2>
-            <SpeakerFrequencyResponseChart
+            <FrequencyResponseChart
               curve={speaker.spec.frequencyResponse.curve}
             />
           </section>

@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aura:contracts:v1:microphone-spec",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "dynamic",
+        "condenser",
+        "ribbon"
+      ]
+    },
+    "polarPattern": {
+      "type": "string",
+      "enum": [
+        "omnidirectional",
+        "cardioid",
+        "supercardioid",
+        "hypercardioid",
+        "figure_8",
+        "shotgun"
+      ]
+    },
+    "frequencyResponse": {
+      "type": "object",
+      "properties": {
+        "rangeHz": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          ]
+        },
+        "curve": {
+          "minItems": 2,
+          "type": "array",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "rangeHz",
+        "curve"
+      ],
+      "additionalProperties": {}
+    },
+    "sensitivity": {
+      "type": "object",
+      "properties": {
+        "mvPerPa": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "mvPerPa"
+      ],
+      "additionalProperties": {}
+    },
+    "maxSpl": {
+      "type": "object",
+      "properties": {
+        "dbSpl": {
+          "type": "number"
+        },
+        "thdPct": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "dbSpl"
+      ],
+      "additionalProperties": {}
+    },
+    "selfNoise": {
+      "type": "object",
+      "properties": {
+        "dbaSpl": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "dbaSpl"
+      ],
+      "additionalProperties": {}
+    },
+    "electrical": {
+      "type": "object",
+      "properties": {
+        "impedanceOhm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "phantomPowerRequired": {
+          "type": "boolean"
+        },
+        "connector": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "impedanceOhm",
+        "phantomPowerRequired",
+        "connector"
+      ],
+      "additionalProperties": {}
+    },
+    "physical": {
+      "type": "object",
+      "properties": {
+        "weightKg": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "dimensionsMm": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          ]
+        }
+      },
+      "required": [
+        "weightKg"
+      ],
+      "additionalProperties": {}
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "kind",
+    "polarPattern",
+    "frequencyResponse",
+    "sensitivity",
+    "maxSpl",
+    "electrical",
+    "physical"
+  ],
+  "additionalProperties": {},
+  "title": "MicrophoneSpec v1",
+  "description": "Datasheet de un micrófono del catálogo. Alimenta el nodo microphone del flujo de señal (1 entrada acústica → 1 salida) y su panel de specs; no llega al motor de simulación."
+}

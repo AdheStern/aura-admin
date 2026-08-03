@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aura:contracts:v1:console-spec",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "analog",
+        "digital"
+      ]
+    },
+    "io": {
+      "type": "object",
+      "properties": {
+        "inputChannels": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "outputBuses": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "auxSends": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "matrixOutputs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "inputChannels",
+        "outputBuses"
+      ],
+      "additionalProperties": {}
+    },
+    "gain": {
+      "type": "object",
+      "properties": {
+        "trimRangeDb": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "faderRangeDb": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "required": [
+        "trimRangeDb",
+        "faderRangeDb"
+      ],
+      "additionalProperties": {}
+    },
+    "phantomPower": {
+      "type": "object",
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "perChannel": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "available",
+        "perChannel"
+      ],
+      "additionalProperties": {}
+    },
+    "physical": {
+      "type": "object",
+      "properties": {
+        "weightKg": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "rackUnits": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "weightKg"
+      ],
+      "additionalProperties": {}
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "kind",
+    "io",
+    "gain",
+    "phantomPower",
+    "physical"
+  ],
+  "additionalProperties": {},
+  "title": "ConsoleSpec v1",
+  "description": "Datasheet de una consola del catálogo. Alimenta el nodo console del flujo de señal: de io salen sus handles (N entradas → M buses) y de gain los rangos de trim y fader."
+}

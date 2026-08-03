@@ -1,28 +1,16 @@
 // src/features/catalogs/queries/get-speaker.ts
 
+import type { SpeakerSpec } from "@/contracts/speaker-spec.schema";
 import { speakerSpecSchema } from "@/contracts/speaker-spec.schema";
-import type { CatalogSpeakerDetail } from "@/features/catalogs/types";
+import { toEquipmentDetail } from "@/features/catalogs/queries/to-equipment-detail";
+import type { CatalogEquipmentDetail } from "@/features/catalogs/types";
 import { db } from "@/lib/db";
 
 export async function getSpeaker(
   speakerId: string,
-): Promise<CatalogSpeakerDetail | null> {
+): Promise<CatalogEquipmentDetail<SpeakerSpec> | null> {
   const row = await db.catalogSpeaker.findUnique({ where: { id: speakerId } });
   if (!row) return null;
 
-  const parsed =
-    row.specVersion === "1" ? speakerSpecSchema.safeParse(row.spec) : null;
-
-  return {
-    id: row.id,
-    brand: row.brand,
-    model: row.model,
-    category: row.category,
-    verified: row.verified,
-    specVersion: row.specVersion,
-    spec: parsed?.success ? parsed.data : null,
-    specRaw: row.spec,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  };
+  return toEquipmentDetail(row, speakerSpecSchema);
 }

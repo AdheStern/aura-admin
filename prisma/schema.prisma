@@ -234,3 +234,56 @@ model CatalogMaterial {
   @@index([spec(ops: JsonbPathOps)], type: Gin)
   @@map("catalog_material")
 }
+
+model CatalogMicrophone {
+  id          String   @id @default(cuid())
+  brand       String
+  model       String
+  category    String // = spec.kind: dynamic | condenser | ribbon
+  spec        Json // MicrophoneSpec v1 (contracts/microphone-spec.schema.ts)
+  specVersion String   @default("1")
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([brand, model])
+  @@index([category])
+  @@index([spec(ops: JsonbPathOps)], type: Gin)
+  @@map("catalog_microphone")
+}
+
+model CatalogConsole {
+  id          String   @id @default(cuid())
+  brand       String
+  model       String
+  category    String // = spec.kind: analog | digital
+  spec        Json // ConsoleSpec v1 (contracts/console-spec.schema.ts)
+  specVersion String   @default("1")
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([brand, model])
+  @@index([category])
+  @@index([spec(ops: JsonbPathOps)], type: Gin)
+  @@map("catalog_console")
+}
+
+// El nodo del flujo se llama `pa` y el doc lo glosa "(amplificador/procesador)"; la tabla es
+// catalog_amplifier porque así la nombra la Sección 4.1. Son el mismo concepto.
+model CatalogAmplifier {
+  id          String   @id @default(cuid())
+  brand       String
+  model       String
+  category    String // = spec.kind: amplifier | amplifier_dsp
+  spec        Json // AmplifierSpec v1 (contracts/amplifier-spec.schema.ts)
+  specVersion String   @default("1")
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([brand, model])
+  @@index([category])
+  @@index([spec(ops: JsonbPathOps)], type: Gin)
+  @@map("catalog_amplifier")
+}

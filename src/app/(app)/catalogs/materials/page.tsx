@@ -1,8 +1,8 @@
 // src/app/(app)/catalogs/materials/page.tsx
 
+import { CatalogCategoryFilter } from "@/features/catalogs/components/catalog-category-filter";
+import { CatalogTable } from "@/features/catalogs/components/catalog-table";
 import { CreateMaterialDialog } from "@/features/catalogs/components/create-material-dialog";
-import { MaterialCategoryFilter } from "@/features/catalogs/components/material-category-filter";
-import { MaterialTable } from "@/features/catalogs/components/material-table";
 import {
   listMaterialCategories,
   listMaterials,
@@ -32,8 +32,20 @@ export default async function MaterialsPage({
         </div>
         <CreateMaterialDialog />
       </div>
-      <MaterialCategoryFilter categories={categories} />
-      <MaterialTable materials={materials} />
+      <CatalogCategoryFilter
+        basePath="/catalogs/materials"
+        options={categories.map((cat) => ({ value: cat, label: cat }))}
+      />
+      <CatalogTable
+        headers={["Nombre", "Categoría"]}
+        rows={materials.map((material) => ({
+          id: material.id,
+          cells: [material.name, material.category],
+          verified: material.verified,
+        }))}
+        basePath="/catalogs/materials"
+        emptyLabel="No hay materiales todavía."
+      />
     </div>
   );
 }

@@ -28,7 +28,7 @@ no conozca, y el CI de cada repo valida sus fixtures contra su copia local.
 
 | Contrato | Campos desconocidos | Razón |
 |---|---|---|
-| `SpeakerSpec`, `MaterialSpec` | se aceptan | Regla (3) de ingesta de catálogos: un datasheet más rico que el schema no se rechaza. |
+| `SpeakerSpec`, `MaterialSpec`, `MicrophoneSpec`, `ConsoleSpec`, `AmplifierSpec` | se aceptan | Regla (3) de ingesta de catálogos: un datasheet más rico que el schema no se rechaza. |
 | `RoomGeometry`, `SimulationRequest` | se rechazan | Un campo de más es un bug del compilador de escenas; mejor `INVALID_PAYLOAD` que una simulación entera mal calculada. |
 | `SimulationResult`, `EngineError` | se aceptan | El despliegue va motor primero: durante esa ventana la app recibe resultados de un motor más nuevo y no debe romperse al leerlos. |
 
@@ -39,6 +39,28 @@ no conozca, y el CI de cada repo valida sus fixtures contra su copia local.
 
 ## Decisiones tomadas aquí (no estaban cerradas en el doc)
 
+- **`MicrophoneSpec`, `ConsoleSpec` y `AmplifierSpec` se definieron enteros aquí.** El doc maestro
+  solo los nombra como tablas (`// catalog_microphone, catalog_console, catalog_amplifier: misma
+  forma`, Sección 4.1) y describe en prosa qué aporta cada nodo al flujo (Sección 5.1); no da ni un
+  campo. No estaban agendados en Fase 0 ni listados como decisión abierta en la Sección 14, pero
+  Fase 1 pide seed de 10 micrófonos, 5 consolas y 5 PA. Los tres se añadieron a la Sección 4.2 del
+  doc al cerrarlos.
+- **Sin espejo en `aura-engine/contracts/` todavía.** El `SimulationRequest` solo transporta
+  parlantes: del grafo mic→consola→PA sobreviven dos escalares derivados (`electricalPowerW` y
+  `programSpectrum`). Estos tres contratos no cruzan al motor, así que los pasos (2)–(4) del
+  procedimiento de la Sección 07 no aplican hasta que lo hagan. Viven aquí versionados y cubiertos
+  por el test de drift.
+- **`AmplifierSpec.powerPerChannelW` indexado por impedancia**, con `"8"` obligatorio y el resto
+  opcionales. La potencia entregada depende de la carga, y el grafo la conoce de
+  `SpeakerSpec.power.impedanceOhm`. Se modeló con claves fijas y no con `partialRecord` +
+  `.refine("al menos una clave")` porque **`z.toJSONSchema` no representa los `.refine()`**: el
+  `.schema.json` habría quedado más débil que el zod sin que nada lo avisara.
+- **`ConsoleSpec.io.outputBuses` son los handles de salida**, no `auxSends` ni `matrixOutputs`. El
+  doc modela la consola como N→M; los envíos auxiliares se declaran como dato de placa pero el
+  grafo no los rutea en v1.
+- **`MicrophoneSpec` sin directividad numérica**: el micrófono no se simula acústicamente en v1 y
+  la realimentación (lo único que necesitaría integrar su patrón polar) está diferida a v2 por el
+  doc. El patrón viaja como etiqueta enumerada.
 - **α hasta 1.2** en `MaterialSpec.absorption`: los coeficientes Sabine medidos en cámara
   reverberante (ISO 354) superan 1.0 por difracción de bordes, y las tablas estándar traen
   valores como 1.05. `scattering` sí queda acotado a [0, 1] porque es una fracción real.

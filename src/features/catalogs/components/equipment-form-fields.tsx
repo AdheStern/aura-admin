@@ -1,17 +1,22 @@
-// src/features/catalogs/components/speaker-form-fields.tsx
+// src/features/catalogs/components/equipment-form-fields.tsx — campos comunes a los cuatro
+// catálogos de equipo: marca, modelo y el datasheet JSON. `verified` solo se pasa al editar —
+// todo ítem nuevo entra sin verificar y marcarlo es un paso posterior de revisión (regla 4 de
+// ingesta), así que el alta ni siquiera muestra la casilla.
 
+import type { z } from "zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { speakerSpecSchema } from "@/contracts/speaker-spec.schema";
 import { SpecJsonField } from "@/features/catalogs/components/spec-json-field";
 
-export function SpeakerFormFields({
+export function EquipmentFormFields<T>({
+  schema,
   defaultBrand = "",
   defaultModel = "",
   defaultSpecJson,
   verified,
 }: {
+  schema: z.ZodType<T>;
   defaultBrand?: string;
   defaultModel?: string;
   defaultSpecJson: string;
@@ -30,7 +35,7 @@ export function SpeakerFormFields({
         </div>
       </div>
       <SpecJsonField
-        schema={speakerSpecSchema}
+        schema={schema}
         name="specJson"
         label="Datasheet (JSON)"
         defaultValue={defaultSpecJson}

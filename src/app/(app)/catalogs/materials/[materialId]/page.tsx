@@ -1,7 +1,8 @@
 // src/app/(app)/catalogs/materials/[materialId]/page.tsx
 
 import { notFound } from "next/navigation";
-import { DeleteMaterialAlert } from "@/features/catalogs/components/delete-material-alert";
+import { deleteMaterial } from "@/features/catalogs/actions";
+import { DeleteCatalogAlert } from "@/features/catalogs/components/delete-catalog-alert";
 import { EditMaterialDialog } from "@/features/catalogs/components/edit-material-dialog";
 import { MaterialBandChart } from "@/features/catalogs/components/material-band-chart";
 import { MaterialDatasheet } from "@/features/catalogs/components/material-datasheet";
@@ -32,9 +33,11 @@ export default async function MaterialDetailPage({
             specJson={JSON.stringify(material.specRaw, null, 2)}
             initialVerified={material.verified}
           />
-          <DeleteMaterialAlert
-            materialId={material.id}
-            materialName={material.name}
+          <DeleteCatalogAlert
+            itemId={material.id}
+            itemLabel={material.name}
+            onDelete={deleteMaterial}
+            redirectTo="/catalogs/materials"
           />
         </div>
       </div>

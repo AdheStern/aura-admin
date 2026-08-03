@@ -1,11 +1,16 @@
 // src/features/catalogs/components/speaker-datasheet.tsx — vista estructurada de los campos
-// relevantes del datasheet (no todos los campos, ver plan: 9 grupos con sentido para escanear).
+// relevantes del datasheet (no todos los campos: 9 grupos con sentido para escanear).
 
 import type { SpeakerSpec } from "@/contracts/speaker-spec.schema";
+import { SpecDatasheet } from "@/features/catalogs/components/spec-datasheet";
+import {
+  categoryLabel,
+  SPEAKER_KIND_LABEL,
+} from "@/features/catalogs/schemas/kind-labels";
 
 export function SpeakerDatasheet({ spec }: { spec: SpeakerSpec }) {
   const rows: [string, string][] = [
-    ["Tipo", spec.kind],
+    ["Tipo", categoryLabel(spec.kind, SPEAKER_KIND_LABEL)],
     [
       "Transductores",
       `${spec.transducers.lf ?? "—"} / ${spec.transducers.hf ?? "—"}`,
@@ -37,14 +42,5 @@ export function SpeakerDatasheet({ spec }: { spec: SpeakerSpec }) {
     ["Conectores", spec.electrical.connectors.join(", ")],
   ];
 
-  return (
-    <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
-      {rows.map(([label, value]) => (
-        <div className="contents" key={label}>
-          <dt className="text-sm text-muted-foreground">{label}</dt>
-          <dd className="text-sm font-medium">{value}</dd>
-        </div>
-      ))}
-    </dl>
-  );
+  return <SpecDatasheet rows={rows} />;
 }

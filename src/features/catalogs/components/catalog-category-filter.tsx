@@ -1,5 +1,6 @@
-// src/features/catalogs/components/material-category-filter.tsx — category es texto libre
-// (sin enum en el contrato): las opciones vienen de lo que ya existe en la BD.
+// src/features/catalogs/components/catalog-category-filter.tsx — filtro por categoría vía
+// ?category=. Recibe las opciones ya resueltas porque su origen cambia según el tipo: los equipos
+// las derivan del enum kind de su contrato, los materiales de un distinct en BD (texto libre).
 
 "use client";
 
@@ -12,10 +13,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export function MaterialCategoryFilter({
-  categories,
+export function CatalogCategoryFilter({
+  basePath,
+  options,
 }: {
-  categories: string[];
+  basePath: string;
+  options: { value: string; label: string }[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -28,7 +31,7 @@ export function MaterialCategoryFilter({
     } else {
       params.set("category", value);
     }
-    router.push(`/catalogs/materials?${params.toString()}`);
+    router.push(`${basePath}?${params.toString()}`);
   }
 
   return (
@@ -38,9 +41,9 @@ export function MaterialCategoryFilter({
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="all">Todas las categorías</SelectItem>
-        {categories.map((cat) => (
-          <SelectItem key={cat} value={cat}>
-            {cat}
+        {options.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
           </SelectItem>
         ))}
       </SelectContent>

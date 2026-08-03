@@ -1,4 +1,6 @@
-// src/features/catalogs/components/delete-material-alert.tsx
+// src/features/catalogs/components/delete-catalog-alert.tsx — confirmación de borrado común.
+// La action llega como prop desde el server component del detalle (las Server Actions son
+// referencias serializables), así que un solo componente sirve a los cinco catálogos.
 
 "use client";
 
@@ -16,14 +18,19 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { deleteMaterial } from "@/features/catalogs/actions";
 
-export function DeleteMaterialAlert({
-  materialId,
-  materialName,
+export function DeleteCatalogAlert({
+  itemId,
+  itemLabel,
+  onDelete,
+  redirectTo,
 }: {
-  materialId: string;
-  materialName: string;
+  itemId: string;
+  itemLabel: string;
+  onDelete: (
+    id: string,
+  ) => Promise<{ ok: true } | { ok: false; error: { message: string } }>;
+  redirectTo: string;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -31,13 +38,13 @@ export function DeleteMaterialAlert({
 
   async function handleDelete() {
     setIsPending(true);
-    const result = await deleteMaterial(materialId);
+    const result = await onDelete(itemId);
     setIsPending(false);
     if (!result.ok) {
       setError(result.error.message);
       return;
     }
-    router.push("/catalogs/materials");
+    router.push(redirectTo);
     router.refresh();
   }
 
@@ -48,9 +55,11 @@ export function DeleteMaterialAlert({
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>¿Eliminar «{materialName}»?</AlertDialogTitle>
+          <AlertDialogTitle>¿Eliminar «{itemLabel}»?</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta acción no se puede deshacer.
+            Esta acción no se puede deshacer. Si alguna escena lo referencia, la
+            referencia queda colgante (sin FK — modelo JSONB del grafo de
+            señal).
           </AlertDialogDescription>
         </AlertDialogHeader>
         {error ? <p className="text-sm text-destructive">{error}</p> : null}

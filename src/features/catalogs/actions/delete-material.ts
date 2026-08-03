@@ -3,7 +3,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { catalogMaterialIdSchema } from "@/features/catalogs/schemas/ids";
+import {
+  firstIssue,
+  validationError,
+} from "@/features/catalogs/schemas/action-errors";
+import { catalogIdSchema } from "@/features/catalogs/schemas/ids";
 import { db } from "@/lib/db";
 import { requireSuperAdmin } from "@/lib/session";
 import type { ActionResult } from "@/types/action-result";
@@ -14,17 +18,11 @@ export async function deleteMaterial(
   const activeUser = await requireSuperAdmin();
   if (!activeUser.ok) return activeUser;
 
-  const parsed = catalogMaterialIdSchema.safeParse(materialId);
-  if (!parsed.success) {
-    return {
-      ok: false,
-      error: {
-        code: "VALIDATION_ERROR",
-        message: parsed.error.issues[0]?.message ?? "ID inválido",
-      },
-    };
-  }
+  const parsed = catalogIdSchema.safeParse(materialId);
+  if (!parsed.success) return validationError(firstIssue(parsed.error));
 
+  // Sin FK: Scene.room referencia materiales por id embebido en JSON. Borrar uno referenciado
+  // puede dejar una referencia colgante — tradeoff aceptado del modelo JSONB, no se resuelve aquí.
   await db.catalogMaterial.delete({ where: { id: parsed.data } });
 
   revalidatePath("/catalogs/materials");

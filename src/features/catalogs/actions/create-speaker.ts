@@ -2,10 +2,15 @@
 
 "use server";
 
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { speakerSpecSchema } from "@/contracts/speaker-spec.schema";
-import { createSpeakerSchema } from "@/features/catalogs/schemas/create-speaker";
+import {
+  firstIssue,
+  isUniqueViolation,
+  validationError,
+} from "@/features/catalogs/schemas/action-errors";
+import { createEquipmentSchema } from "@/features/catalogs/schemas/equipment";
 import { parseSpecJson } from "@/features/catalogs/schemas/parse-spec-json";
 import { db } from "@/lib/db";
 import { requireSuperAdmin } from "@/lib/session";
@@ -19,24 +24,11 @@ export async function createSpeaker(
   const activeUser = await requireSuperAdmin();
   if (!activeUser.ok) return activeUser;
 
-  const parsed = createSpeakerSchema.safeParse({ brand, model, specJson });
-  if (!parsed.success) {
-    return {
-      ok: false,
-      error: {
-        code: "VALIDATION_ERROR",
-        message: parsed.error.issues[0]?.message ?? "Datos inválidos",
-      },
-    };
-  }
+  const parsed = createEquipmentSchema.safeParse({ brand, model, specJson });
+  if (!parsed.success) return validationError(firstIssue(parsed.error));
 
   const spec = parseSpecJson(speakerSpecSchema, parsed.data.specJson);
-  if (!spec.ok) {
-    return {
-      ok: false,
-      error: { code: "VALIDATION_ERROR", message: spec.message },
-    };
-  }
+  if (!spec.ok) return validationError(spec.message);
 
   try {
     const speaker = await db.catalogSpeaker.create({
@@ -53,17 +45,8 @@ export async function createSpeaker(
     revalidatePath("/catalogs/speakers");
     return { ok: true, data: { id: speaker.id } };
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
-      return {
-        ok: false,
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Ya existe un parlante con esa marca y modelo",
-        },
-      };
+    if (isUniqueViolation(error)) {
+      return validationError("Ya existe un parlante con esa marca y modelo");
     }
     throw error;
   }
