@@ -11,4 +11,5 @@ export * from "./registry";
 export * from "./room-geometry.schema";
 export * from "./simulation-request.schema";
 export * from "./simulation-result.schema";
+export * from "./source-spec.schema";
 export * from "./speaker-spec.schema";

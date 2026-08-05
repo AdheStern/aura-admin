@@ -1,19 +1,19 @@
-// src/features/catalogs/components/edit-material-dialog.tsx
+// src/features/catalogs/components/edit-source-dialog.tsx
 
 "use client";
 
 import { useState } from "react";
-import { materialSpecSchema } from "@/contracts/material-spec.schema";
-import { updateMaterial } from "@/features/catalogs/actions";
+import { sourceSpecSchema } from "@/contracts/source-spec.schema";
+import { updateSource } from "@/features/catalogs/actions";
 import { CatalogDialog } from "@/features/catalogs/components/catalog-dialog";
 import { SpecFormFields } from "@/features/catalogs/components/spec-form-fields";
 
-export function EditMaterialDialog({
-  materialId,
+export function EditSourceDialog({
+  sourceId,
   specJson,
   initialVerified,
 }: {
-  materialId: string;
+  sourceId: string;
   specJson: string;
   initialVerified: boolean;
 }) {
@@ -23,20 +23,16 @@ export function EditMaterialDialog({
     <CatalogDialog
       triggerLabel="Editar"
       triggerVariant="outline"
-      title="Editar material"
-      formId="edit-material-form"
+      title="Editar fuente"
+      formId="edit-source-form"
       submitLabel="Guardar cambios"
       pendingLabel="Guardando…"
       onSubmit={(formData) =>
-        updateMaterial(
-          materialId,
-          String(formData.get("specJson") ?? ""),
-          verified,
-        )
+        updateSource(sourceId, String(formData.get("specJson") ?? ""), verified)
       }
     >
       <SpecFormFields
-        schema={materialSpecSchema}
+        schema={sourceSpecSchema}
         defaultSpecJson={specJson}
         verified={{ checked: verified, onCheckedChange: setVerified }}
       />

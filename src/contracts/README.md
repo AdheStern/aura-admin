@@ -61,6 +61,16 @@ no conozca, y el CI de cada repo valida sus fixtures contra su copia local.
 - **`MicrophoneSpec` sin directividad numérica**: el micrófono no se simula acústicamente en v1 y
   la realimentación (lo único que necesitaría integrar su patrón polar) está diferida a v2 por el
   doc. El patrón viaja como etiqueta enumerada.
+- **`AmplifierSpec` es una unión discriminada, no un objeto con `powerPerChannelW` opcional.** El
+  nodo `pa` cubre amplificadores y gestores de altavoces, que no entregan vatios. Se modeló como
+  unión porque `z.toJSONSchema` **sí** representa las uniones (emite `oneOf`) y en cambio descarta
+  los `.refine()` en silencio: así la restricción sobrevive a la copia al motor. Trampa: la
+  variante `processor` es laxa, así que un `powerPerChannelW` sobrante **se tolera** — quien
+  resuelva el grafo debe mirar `kind`, no la presencia del campo.
+- **`SourceSpec` es la mitad del nodo `source` que vive en la app.** La Sección 5.1 se contradecía
+  («cada nodo referencia un ítem de catálogo» vs. «tabla interna»); el reparto acordado es:
+  catálogo = qué fuentes existen y cómo se describen, motor = espectro por banda. Por eso no
+  declara `programSpectrum`: ese mapeo es de Fase 2.
 - **Scattering derivado por familia de superficie.** Ninguna tabla de absorción publica s: α y s se
   miden en ensayos distintos (ISO 354 e ISO 17497). El doc exige s en las seis bandas pero no dice
   de dónde sale. El seed lo deriva con cinco perfiles (`lisa`, `texturada`, `porosa`, `plegada`,

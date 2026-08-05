@@ -5,6 +5,7 @@
 
 import {
   AudioLinesIcon,
+  GuitarIcon,
   type LucideIcon,
   MicIcon,
   PackageIcon,
@@ -21,6 +22,13 @@ export type CatalogType = {
 };
 
 export const CATALOG_TYPES: readonly CatalogType[] = [
+  {
+    // Primero porque es donde arranca la cadena de señal: fuente → micro/consola → PA → parlante.
+    slug: "sources",
+    label: "Fuentes",
+    description: "Instrumentos y voces que originan la cadena.",
+    icon: GuitarIcon,
+  },
   {
     slug: "speakers",
     label: "Parlantes",

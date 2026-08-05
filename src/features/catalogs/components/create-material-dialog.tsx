@@ -3,9 +3,10 @@
 "use client";
 
 import { EXAMPLE_MATERIAL_SPEC } from "@/contracts/examples";
+import { materialSpecSchema } from "@/contracts/material-spec.schema";
 import { createMaterial } from "@/features/catalogs/actions";
 import { CatalogDialog } from "@/features/catalogs/components/catalog-dialog";
-import { MaterialFormFields } from "@/features/catalogs/components/material-form-fields";
+import { SpecFormFields } from "@/features/catalogs/components/spec-form-fields";
 
 export function CreateMaterialDialog() {
   return (
@@ -19,7 +20,8 @@ export function CreateMaterialDialog() {
         createMaterial(String(formData.get("specJson") ?? ""))
       }
     >
-      <MaterialFormFields
+      <SpecFormFields
+        schema={materialSpecSchema}
         defaultSpecJson={JSON.stringify(EXAMPLE_MATERIAL_SPEC, null, 2)}
       />
     </CatalogDialog>

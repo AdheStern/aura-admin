@@ -6,6 +6,7 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import type { z } from "zod";
 import type { MaterialSpec } from "../../src/contracts/material-spec.schema";
+import type { SourceSpec } from "../../src/contracts/source-spec.schema";
 
 export type EquipmentEntry<T> = { brand: string; model: string; spec: T };
 
@@ -65,6 +66,38 @@ export async function upsertAll(
     await upsertOne(record);
   }
   console.log(`✓ ${records.length} ${label}`);
+}
+
+/**
+ * Fuentes: catalog_source SÍ tiene @@unique([name]) —no existen dos "Bombo"—, así que el upsert
+ * por nombre es directo, sin el rodeo que necesitan los materiales.
+ */
+export async function upsertSources(
+  prisma: PrismaClient,
+  schema: z.ZodType<SourceSpec>,
+  specs: SourceSpec[],
+): Promise<void> {
+  for (const spec of specs) {
+    const parsed = schema.safeParse(spec);
+    if (!parsed.success) {
+      fail("Fuentes", spec.name ?? "(sin nombre)", parsed.error);
+    }
+
+    const data = {
+      name: parsed.data.name,
+      category: parsed.data.kind,
+      spec: parsed.data as Prisma.InputJsonValue,
+      specVersion: parsed.data.schemaVersion,
+      verified: false,
+    };
+
+    await prisma.catalogSource.upsert({
+      where: { name: parsed.data.name },
+      create: data,
+      update: data,
+    });
+  }
+  console.log(`✓ ${specs.length} fuentes`);
 }
 
 /**

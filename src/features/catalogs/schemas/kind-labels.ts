@@ -8,6 +8,8 @@ import type { ConsoleSpec } from "@/contracts/console-spec.schema";
 import { consoleSpecSchema } from "@/contracts/console-spec.schema";
 import type { MicrophoneSpec } from "@/contracts/microphone-spec.schema";
 import { microphoneSpecSchema } from "@/contracts/microphone-spec.schema";
+import type { SourceSpec } from "@/contracts/source-spec.schema";
+import { sourceSpecSchema } from "@/contracts/source-spec.schema";
 import type { SpeakerSpec } from "@/contracts/speaker-spec.schema";
 import { speakerSpecSchema } from "@/contracts/speaker-spec.schema";
 
@@ -44,12 +46,37 @@ export const CONSOLE_KIND_LABEL: Record<ConsoleSpec["kind"], string> = {
 export const AMPLIFIER_KIND_LABEL: Record<AmplifierSpec["kind"], string> = {
   amplifier: "Amplificador",
   amplifier_dsp: "Amplificador con DSP",
+  processor: "Procesador (sin potencia)",
 };
+
+export const SOURCE_KIND_LABEL: Record<SourceSpec["kind"], string> = {
+  percussion: "Percusión",
+  strings: "Cuerdas",
+  keys: "Teclados",
+  vocals: "Voces",
+};
+
+export const ACOUSTIC_POWER_LABEL: Record<SourceSpec["acousticPower"], string> =
+  {
+    low: "Baja",
+    medium: "Media",
+    medium_high: "Media-alta",
+    high: "Alta",
+  };
 
 export const SPEAKER_CATEGORIES = speakerSpecSchema.shape.kind.options;
 export const MICROPHONE_CATEGORIES = microphoneSpecSchema.shape.kind.options;
 export const CONSOLE_CATEGORIES = consoleSpecSchema.shape.kind.options;
-export const AMPLIFIER_CATEGORIES = amplifierSpecSchema.shape.kind.options;
+export const SOURCE_CATEGORIES = sourceSpecSchema.shape.kind.options;
+
+// AmplifierSpec es una unión discriminada, así que no tiene `.shape`: los kinds se juntan
+// recorriendo sus variantes. Sigue derivándose del contrato, no escrito a mano.
+export const AMPLIFIER_CATEGORIES = amplifierSpecSchema.options.flatMap(
+  (variant) =>
+    "options" in variant.shape.kind
+      ? variant.shape.kind.options
+      : [variant.shape.kind.value],
+) as AmplifierSpec["kind"][];
 
 /** Opciones del filtro por categoría, derivadas del enum del contrato. */
 export function toCategoryOptions<K extends string>(

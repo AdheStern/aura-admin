@@ -13,6 +13,7 @@ import {
   engineErrorEnvelopeSchema,
   simulationResultSchema,
 } from "./simulation-result.schema";
+import { sourceSpecSchema } from "./source-spec.schema";
 import { speakerSpecSchema } from "./speaker-spec.schema";
 
 /** Versión de los contratos. Cambiarla es el paso (1) del procedimiento de la Sección 07. */
@@ -51,6 +52,11 @@ export const CONTRACTS: readonly ContractDefinition[] = [
     fileName: "amplifier-spec.schema.json",
     id: "urn:aura:contracts:v1:amplifier-spec",
     schema: amplifierSpecSchema,
+  },
+  {
+    fileName: "source-spec.schema.json",
+    id: "urn:aura:contracts:v1:source-spec",
+    schema: sourceSpecSchema,
   },
   {
     fileName: "room-geometry.schema.json",

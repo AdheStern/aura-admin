@@ -1,12 +1,13 @@
-// src/features/catalogs/actions/create-material.ts
+// src/features/catalogs/actions/create-source.ts
 
 "use server";
 
 import type { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { materialSpecSchema } from "@/contracts/material-spec.schema";
+import { sourceSpecSchema } from "@/contracts/source-spec.schema";
 import {
   firstIssue,
+  isUniqueViolation,
   validationError,
 } from "@/features/catalogs/schemas/action-errors";
 import { createNamedItemSchema } from "@/features/catalogs/schemas/named-item";
@@ -15,7 +16,7 @@ import { db } from "@/lib/db";
 import { requireSuperAdmin } from "@/lib/session";
 import type { ActionResult } from "@/types/action-result";
 
-export async function createMaterial(
+export async function createSource(
   specJson: string,
 ): Promise<ActionResult<{ id: string }>> {
   const activeUser = await requireSuperAdmin();
@@ -24,19 +25,26 @@ export async function createMaterial(
   const parsed = createNamedItemSchema.safeParse({ specJson });
   if (!parsed.success) return validationError(firstIssue(parsed.error));
 
-  const spec = parseSpecJson(materialSpecSchema, parsed.data.specJson);
+  const spec = parseSpecJson(sourceSpecSchema, parsed.data.specJson);
   if (!spec.ok) return validationError(spec.message);
 
-  const material = await db.catalogMaterial.create({
-    data: {
-      name: spec.data.name,
-      category: spec.data.category,
-      spec: spec.data as Prisma.InputJsonValue,
-      specVersion: spec.data.schemaVersion,
-    },
-    select: { id: true },
-  });
+  try {
+    const source = await db.catalogSource.create({
+      data: {
+        name: spec.data.name,
+        category: spec.data.kind,
+        spec: spec.data as Prisma.InputJsonValue,
+        specVersion: spec.data.schemaVersion,
+      },
+      select: { id: true },
+    });
 
-  revalidatePath("/catalogs/materials");
-  return { ok: true, data: { id: material.id } };
+    revalidatePath("/catalogs/sources");
+    return { ok: true, data: { id: source.id } };
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      return validationError("Ya existe una fuente con ese nombre");
+    }
+    throw error;
+  }
 }

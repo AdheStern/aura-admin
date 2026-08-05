@@ -7,6 +7,7 @@ import type { AmplifierSpec } from "./amplifier-spec.schema";
 import type { ConsoleSpec } from "./console-spec.schema";
 import type { MaterialSpec } from "./material-spec.schema";
 import type { MicrophoneSpec } from "./microphone-spec.schema";
+import type { SourceSpec } from "./source-spec.schema";
 import type { SpeakerSpec } from "./speaker-spec.schema";
 
 /** Ejemplo literal de la Sección 4.2 del doc maestro. */
@@ -121,4 +122,27 @@ export const EXAMPLE_AMPLIFIER_SPEC: AmplifierSpec = {
   processing: { dsp: true, crossover: true, limiter: true, delayMaxMs: 1000 },
   electrical: { mainsVoltageV: 220, connectors: ["speakon_nl4", "xlr3"] },
   physical: { weightKg: 12.5, rackUnits: 2 },
+};
+
+/** Gestor de altavoces: mismo nodo `pa`, pero sin etapa de potencia. */
+export const EXAMPLE_PROCESSOR_SPEC: AmplifierSpec = {
+  schemaVersion: "1",
+  kind: "processor",
+  io: { inputChannels: 2, outputChannels: 6 },
+  bridgeable: false,
+  processing: { dsp: true, crossover: true, limiter: true, delayMaxMs: 1000 },
+  electrical: { mainsVoltageV: 220, connectors: ["xlr3"] },
+  physical: { weightKg: 3.2, rackUnits: 1 },
+};
+
+/** Fuente acústica sin amplificar: el caso más simple del nodo `source`. */
+export const EXAMPLE_SOURCE_SPEC: SourceSpec = {
+  schemaVersion: "1",
+  kind: "vocals",
+  name: "Voz masculina",
+  fundamentalRangeHz: [100, 250],
+  harmonics: "Presencia (2-5 kHz), sibilancia (5-10 kHz)",
+  acousticPower: "medium",
+  amplified: false,
+  notes: "El elemento más importante de la mezcla: manda la inteligibilidad.",
 };

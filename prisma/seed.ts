@@ -10,13 +10,20 @@ import { amplifierSpecSchema } from "../src/contracts/amplifier-spec.schema";
 import { consoleSpecSchema } from "../src/contracts/console-spec.schema";
 import { materialSpecSchema } from "../src/contracts/material-spec.schema";
 import { microphoneSpecSchema } from "../src/contracts/microphone-spec.schema";
+import { sourceSpecSchema } from "../src/contracts/source-spec.schema";
 import { speakerSpecSchema } from "../src/contracts/speaker-spec.schema";
 import { AMPLIFIERS } from "./seed/amplifiers";
 import { CONSOLES } from "./seed/consoles";
 import { MATERIAL_SPECS } from "./seed/materials";
 import { MICROPHONES } from "./seed/microphones";
+import { SOURCES } from "./seed/sources";
 import { SPEAKERS } from "./seed/speakers";
-import { toEquipmentRecords, upsertAll, upsertMaterials } from "./seed/upsert";
+import {
+  toEquipmentRecords,
+  upsertAll,
+  upsertMaterials,
+  upsertSources,
+} from "./seed/upsert";
 
 // Cliente propio: src/lib/db.ts es un singleton global pensado para el HMR de Next que nunca
 // cierra la conexión, y dejaría el script colgado. Prisma 7 exige driver adapter.
@@ -27,6 +34,8 @@ async function main() {
   console.log("Sembrando catálogos…\n");
 
   await upsertMaterials(prisma, materialSpecSchema, MATERIAL_SPECS);
+
+  await upsertSources(prisma, sourceSpecSchema, SOURCES);
 
   await upsertAll(
     "parlantes",

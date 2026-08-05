@@ -7,11 +7,14 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import Ajv2020 from "ajv/dist/2020";
 import { describe, expect, it } from "vitest";
+import { amplifierSpecSchema } from "@/contracts/amplifier-spec.schema";
 import {
   EXAMPLE_AMPLIFIER_SPEC,
   EXAMPLE_CONSOLE_SPEC,
   EXAMPLE_MATERIAL_SPEC,
   EXAMPLE_MICROPHONE_SPEC,
+  EXAMPLE_PROCESSOR_SPEC,
+  EXAMPLE_SOURCE_SPEC,
   EXAMPLE_SPEAKER_SPEC,
 } from "@/contracts/examples";
 import canonExpected from "@/contracts/fixtures/canon-01.expected.json";
@@ -25,6 +28,8 @@ const CATALOG_EXAMPLES = [
   ["microphone-spec.schema.json", EXAMPLE_MICROPHONE_SPEC],
   ["console-spec.schema.json", EXAMPLE_CONSOLE_SPEC],
   ["amplifier-spec.schema.json", EXAMPLE_AMPLIFIER_SPEC],
+  ["amplifier-spec.schema.json", EXAMPLE_PROCESSOR_SPEC],
+  ["source-spec.schema.json", EXAMPLE_SOURCE_SPEC],
 ] as const;
 
 const CONTRACTS_DIR = path.join(process.cwd(), "src", "contracts");
@@ -182,6 +187,50 @@ describe("Contratos de equipo: handles y potencia", () => {
     ).toBe(true);
     expect(
       validate({ ...EXAMPLE_AMPLIFIER_SPEC, powerPerChannelW: { "4": 750 } }),
+    ).toBe(false);
+  });
+
+  // La unión discriminada existe justo para esto: el gestor de altavoces comparte nodo con el
+  // amplificador pero no entrega vatios, y exigirle potencia lo dejaría fuera del catálogo.
+  it("el procesador vale sin potencia, el amplificador no", () => {
+    const validate = compile("amplifier-spec.schema.json");
+    const { powerPerChannelW: _omitida, ...ampSinPotencia } =
+      EXAMPLE_AMPLIFIER_SPEC;
+
+    expect(
+      validate(EXAMPLE_PROCESSOR_SPEC),
+      JSON.stringify(validate.errors, null, 2),
+    ).toBe(true);
+    expect(validate(ampSinPotencia)).toBe(false);
+  });
+
+  // Trampa para Fase 2: la variante processor es laxa (regla 3 de ingesta), así que un
+  // powerPerChannelW sobrante se TOLERA como campo desconocido en vez de rechazarse. Quien
+  // resuelva el grafo debe mirar `kind` para decidir si hay potencia, nunca la mera presencia
+  // del campo — este caso fija ese comportamiento para que nadie lo descubra depurando.
+  it("un procesador con potencia sobrante se acepta, pero sigue siendo processor", () => {
+    const validate = compile("amplifier-spec.schema.json");
+    const conSobrante = {
+      ...EXAMPLE_PROCESSOR_SPEC,
+      powerPerChannelW: { "8": 500 },
+    };
+    expect(validate(conSobrante)).toBe(true);
+    expect(amplifierSpecSchema.parse(conSobrante).kind).toBe("processor");
+  });
+
+  it("rechaza un kind de amplificador desconocido", () => {
+    const validate = compile("amplifier-spec.schema.json");
+    expect(validate({ ...EXAMPLE_AMPLIFIER_SPEC, kind: "no_existe" })).toBe(
+      false,
+    );
+  });
+
+  it("la fuente exige rango de fundamentales y clase de energía", () => {
+    const validate = compile("source-spec.schema.json");
+    const { acousticPower: _omitida, ...sinPotencia } = EXAMPLE_SOURCE_SPEC;
+    expect(validate(sinPotencia)).toBe(false);
+    expect(
+      validate({ ...EXAMPLE_SOURCE_SPEC, fundamentalRangeHz: [0, 250] }),
     ).toBe(false);
   });
 

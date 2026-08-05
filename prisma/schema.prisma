@@ -269,8 +269,29 @@ model CatalogConsole {
   @@map("catalog_console")
 }
 
+// Fuentes del nodo `source` (instrumento/voz). El doc dice a la vez que "cada nodo referencia un
+// ítem de catálogo" (5.1) y que el espectro sale de una "tabla interna": esta tabla cubre la
+// primera mitad —qué fuentes existen y cómo se describen— y el espectro por banda sigue en el
+// motor. A diferencia de catalog_material, `name` SÍ es único: no hay dos "Bombo".
+model CatalogSource {
+  id          String   @id @default(cuid())
+  name        String // = spec.name
+  category    String // = spec.kind: percussion | strings | keys | vocals
+  spec        Json // SourceSpec v1 (contracts/source-spec.schema.ts)
+  specVersion String   @default("1")
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([name])
+  @@index([category])
+  @@index([spec(ops: JsonbPathOps)], type: Gin)
+  @@map("catalog_source")
+}
+
 // El nodo del flujo se llama `pa` y el doc lo glosa "(amplificador/procesador)"; la tabla es
-// catalog_amplifier porque así la nombra la Sección 4.1. Son el mismo concepto.
+// catalog_amplifier porque así la nombra la Sección 4.1. Son el mismo concepto. Su spec es una
+// unión discriminada: `processor` cubre los gestores de altavoces, que no entregan potencia.
 model CatalogAmplifier {
   id          String   @id @default(cuid())
   brand       String

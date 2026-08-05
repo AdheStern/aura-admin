@@ -1,12 +1,12 @@
-// src/features/catalogs/queries/list-materials.ts
+// src/features/catalogs/queries/list-sources.ts
 
 import type { CatalogNamedListItem } from "@/features/catalogs/types";
 import { db } from "@/lib/db";
 
-export async function listMaterials(
+export async function listSources(
   category?: string,
 ): Promise<CatalogNamedListItem[]> {
-  const materials = await db.catalogMaterial.findMany({
+  return db.catalogSource.findMany({
     where: category ? { category } : undefined,
     select: {
       id: true,
@@ -15,7 +15,6 @@ export async function listMaterials(
       verified: true,
       updatedAt: true,
     },
-    orderBy: { name: "asc" },
+    orderBy: [{ category: "asc" }, { name: "asc" }],
   });
-  return materials;
 }

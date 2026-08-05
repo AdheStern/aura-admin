@@ -1,12 +1,13 @@
 // src/features/catalogs/queries/get-material.ts
 
+import type { MaterialSpec } from "@/contracts/material-spec.schema";
 import { materialSpecSchema } from "@/contracts/material-spec.schema";
-import type { CatalogMaterialDetail } from "@/features/catalogs/types";
+import type { CatalogNamedDetail } from "@/features/catalogs/types";
 import { db } from "@/lib/db";
 
 export async function getMaterial(
   materialId: string,
-): Promise<CatalogMaterialDetail | null> {
+): Promise<CatalogNamedDetail<MaterialSpec> | null> {
   const row = await db.catalogMaterial.findUnique({
     where: { id: materialId },
   });

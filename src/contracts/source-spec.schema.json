@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aura:contracts:v1:source-spec",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "percussion",
+        "strings",
+        "keys",
+        "vocals"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "fundamentalRangeHz": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      ]
+    },
+    "harmonics": {
+      "type": "string",
+      "minLength": 1
+    },
+    "acousticPower": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "medium_high",
+        "high"
+      ]
+    },
+    "amplified": {
+      "type": "boolean"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "referenceLevelDb": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "kind",
+    "name",
+    "fundamentalRangeHz",
+    "harmonics",
+    "acousticPower",
+    "amplified"
+  ],
+  "additionalProperties": {},
+  "title": "SourceSpec v1",
+  "description": "Fuente sonora del catálogo (instrumento o voz) para el nodo source del flujo de señal. Describe qué toca y con cuánta energía; el espectro por banda vive en la tabla del motor."
+}

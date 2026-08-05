@@ -1,8 +1,9 @@
 // src/features/catalogs/types.ts
+//
+// Dos formas de identidad, no seis: los cuatro catálogos de equipo se identifican por marca+modelo
+// y los dos "nombrados" (materiales y fuentes) por el `name` de su propio spec.
 
-import type { MaterialSpec } from "@/contracts/material-spec.schema";
-
-/** Los cuatro catálogos de equipo comparten columnas planas: se identifican por marca+modelo. */
+/** Equipo: parlantes, micrófonos, consolas y amplificadores. */
 export type CatalogEquipmentListItem = {
   id: string;
   brand: string;
@@ -26,7 +27,8 @@ export type CatalogEquipmentDetail<TSpec> = {
   updatedAt: Date;
 };
 
-export type CatalogMaterialListItem = {
+/** Nombrados: materiales y fuentes. */
+export type CatalogNamedListItem = {
   id: string;
   name: string;
   category: string;
@@ -34,13 +36,13 @@ export type CatalogMaterialListItem = {
   updatedAt: Date;
 };
 
-export type CatalogMaterialDetail = {
+export type CatalogNamedDetail<TSpec> = {
   id: string;
   name: string;
   category: string;
   verified: boolean;
   specVersion: string;
-  spec: MaterialSpec | null;
+  spec: TSpec | null;
   specRaw: unknown;
   createdAt: Date;
   updatedAt: Date;
