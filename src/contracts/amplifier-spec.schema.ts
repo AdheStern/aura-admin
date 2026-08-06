@@ -10,9 +10,10 @@
 // uniones —emite oneOf— y en cambio descarta los refine en silencio: así la restricción sobrevive
 // intacta a la copia al motor.
 //
-// Pendiente de Fase 2: las reglas de conexión del doc son lineales (console→pa→speaker) y no
-// contemplan pa→pa, así que hoy no se puede encadenar un procesador ANTES de un amplificador.
-// Al diseñar el grafo habrá que decidir si esa cadena se admite.
+// Resuelto en Fase 2: `kind` decide el dominio de señal de las salidas del nodo `pa` —el
+// procesador saca línea, la variante con potencia saca nivel de altavoz— y de ahí sale que
+// processor→amplifier (pa→pa) sea una cadena válida y que un procesador solo pueda alimentar
+// cajas activas. Ver features/signal-flow/model/node-ports.ts.
 
 import { z } from "zod";
 
