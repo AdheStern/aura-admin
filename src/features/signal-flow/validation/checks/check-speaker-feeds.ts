@@ -20,6 +20,7 @@ import {
   resolveSpeakerFeed,
   type SpeakerFeed,
 } from "@/features/signal-flow/resolution/resolve-speaker-feed";
+import { channelPowerShare } from "@/features/signal-flow/resolution/speaker-power";
 import { NAMED_PORT_IDS } from "@/features/signal-flow/schemas/port-ids";
 import {
   type FlowIssue,
@@ -92,11 +93,11 @@ function checkAmpLoad(
       ),
     );
   }
-  const mismatch = powerMismatch(
-    speaker,
-    load.watts,
-    feed.parallelSpeakerIds.length,
-  );
+  // El reparto sale de channelPowerShare y no de "watts entre N cajas": con impedancias mezcladas
+  // no es el mismo número, y esa es justo la cifra que acabará en electricalPowerW.
+  const share = channelPowerShare(index, speaker.id, feed.parallelSpeakerIds);
+  const mismatch =
+    share === null ? null : powerMismatch(speaker, load.watts * share);
   if (mismatch) issues.push(flowIssue("AMP_POWER_MISMATCH", mismatch, target));
   return issues;
 }
@@ -107,13 +108,11 @@ function checkAmpLoad(
 // clipea (y el clipping quema agudos), por encima se supera la excursión del cono.
 function powerMismatch(
   speaker: SpeakerNode,
-  channelWatts: number,
-  speakerCount: number,
+  perSpeakerW: number,
 ): string | null {
   const continuousW = speaker.spec?.power.continuousW;
   if (!continuousW) return null;
 
-  const perSpeakerW = channelWatts / speakerCount;
   const ratio = perSpeakerW / continuousW;
 
   if (ratio < 0.5) {

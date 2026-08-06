@@ -10,9 +10,10 @@
 // necesita para pintar y describir el nodo. El espectro por banda sigue viviendo en
 // aura-engine/app/core/acoustics_tables.py, y lo que cruza al motor es la etiqueta programSpectrum.
 //
-// Por eso NO se declara programSpectrum aquí: el doc solo publica el valor "live_band" y no define
-// el enum por instrumento; resolver fuente→espectro es tarea de Fase 2 ("espectros de programa por
-// fuente"). Un campo v1 con claves inventadas sería peor que su ausencia.
+// Por eso NO se declara programSpectrum aquí, y la Fase 2 confirmó que el sitio era otro: la
+// etiqueta no es propiedad de la fuente sino del PARLANTE, que reproduce la mezcla de todas las
+// fuentes que le llegan por el grafo. El mapeo vive en
+// features/signal-flow/resolution/program-spectrum.ts.
 
 import { z } from "zod";
 import { rangeHzSchema } from "./frequency-response";

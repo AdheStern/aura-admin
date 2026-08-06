@@ -8,12 +8,11 @@
 // recinto ya tiene su propio aviso; pedirle además programa sería un segundo regaño por lo mismo.
 
 import {
-  edgesOutOfPort,
   type GraphIndex,
   isReachable,
   nodesOfKind,
 } from "@/features/signal-flow/model/graph-index";
-import { NAMED_PORT_IDS } from "@/features/signal-flow/schemas/port-ids";
+import { simulatedSpeakers } from "@/features/signal-flow/model/simulated-speakers";
 import {
   type FlowIssue,
   flowIssue,
@@ -45,12 +44,4 @@ export function checkProgramReachability(index: GraphIndex): FlowIssue[] {
         { nodeId: speaker.id },
       ),
     );
-}
-
-function simulatedSpeakers(index: GraphIndex) {
-  return nodesOfKind(index, "speaker").filter(
-    (speaker) =>
-      edgesOutOfPort(index, speaker.id, NAMED_PORT_IDS.speakerToSimulation)
-        .length > 0,
-  );
 }

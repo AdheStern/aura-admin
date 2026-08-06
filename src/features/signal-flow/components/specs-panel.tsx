@@ -12,6 +12,7 @@ import { MicrophoneDatasheet } from "@/features/catalogs/components/microphone-d
 import { SourceDatasheet } from "@/features/catalogs/components/source-datasheet";
 import { SpeakerDatasheet } from "@/features/catalogs/components/speaker-datasheet";
 import { useResolvedNode } from "@/features/signal-flow/components/nodes/node-hooks";
+import { SpeakerElectricalSummary } from "@/features/signal-flow/components/speaker-electrical-summary";
 import { SpeakerSettingsForm } from "@/features/signal-flow/components/speaker-settings-form";
 import { ValidationSummary } from "@/features/signal-flow/components/validation-summary";
 import type { FlowRfNode } from "@/features/signal-flow/mapping/react-flow-adapter";
@@ -55,7 +56,10 @@ function SelectedNodePanel({ node }: { node: FlowRfNode }) {
         <DatasheetOrNotice resolved={resolved} />
       )}
       {node.data.kind === "speaker" ? (
-        <SpeakerSettingsForm nodeId={node.id} data={node.data} />
+        <>
+          <SpeakerElectricalSummary nodeId={node.id} />
+          <SpeakerSettingsForm nodeId={node.id} data={node.data} />
+        </>
       ) : null}
     </div>
   );
