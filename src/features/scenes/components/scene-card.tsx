@@ -1,5 +1,6 @@
 // src/features/scenes/components/scene-card.tsx
 
+import Link from "next/link";
 import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { DeleteSceneAlert } from "@/features/scenes/components/delete-scene-alert";
 import { RenameSceneDialog } from "@/features/scenes/components/rename-scene-dialog";
@@ -8,16 +9,23 @@ import type { SceneListItem } from "@/features/scenes/types";
 
 export function SceneCard({
   scene,
+  projectId,
   canManage,
 }: {
   scene: SceneListItem;
+  projectId: string;
   canManage: boolean;
 }) {
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-2">
-          <span className="truncate">{scene.name}</span>
+          <Link
+            href={`/projects/${projectId}/scenes/${scene.id}/flow`}
+            className="truncate hover:underline"
+          >
+            {scene.name}
+          </Link>
           <SceneStatusBadge status={scene.status} />
         </CardTitle>
       </CardHeader>

@@ -5,9 +5,11 @@ import type { SceneListItem } from "@/features/scenes/types";
 
 export function SceneList({
   scenes,
+  projectId,
   canManage,
 }: {
   scenes: SceneListItem[];
+  projectId: string;
   canManage: boolean;
 }) {
   if (scenes.length === 0) {
@@ -21,7 +23,12 @@ export function SceneList({
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {scenes.map((scene) => (
-        <SceneCard key={scene.id} scene={scene} canManage={canManage} />
+        <SceneCard
+          key={scene.id}
+          scene={scene}
+          projectId={projectId}
+          canManage={canManage}
+        />
       ))}
     </div>
   );

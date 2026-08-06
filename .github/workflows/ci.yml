@@ -13,6 +13,23 @@ jobs:
       BETTER_AUTH_SECRET: ci-placeholder-secret
       BETTER_AUTH_URL: http://localhost:3000
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+    # Postgres efímero (Sección 11 del doc maestro): uno por corrida, migrado y sembrado desde
+    # cero, nunca la Supabase de desarrollo — evita credenciales reales en CI y que dos PRs en
+    # paralelo se pisen escribiendo en la misma base.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -42,3 +59,25 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Apply migrations
+        run: pnpm prisma migrate deploy
+
+      - name: Seed catalogs
+        run: pnpm db:seed
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      # playwright.config.ts sirve este build con `pnpm start` en vez de recompilar rutas en frío
+      # bajo `pnpm dev` — más rápido y más parecido a lo que corre en producción.
+      - name: E2E (Playwright)
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

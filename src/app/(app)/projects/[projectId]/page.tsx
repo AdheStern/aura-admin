@@ -82,7 +82,11 @@ export default async function ProjectDetailPage({
             <CreateSceneDialog projectId={project.id} />
           ) : null}
         </div>
-        <SceneList scenes={scenes} canManage={canManageScenes} />
+        <SceneList
+          scenes={scenes}
+          projectId={project.id}
+          canManage={canManageScenes}
+        />
       </section>
     </div>
   );
