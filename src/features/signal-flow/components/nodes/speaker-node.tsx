@@ -21,7 +21,7 @@ export function SpeakerNode({
   const resolved = useResolvedNode(id, data);
 
   return (
-    <NodeShell nodeId={id} label="Parlante" selected={selected}>
+    <NodeShell nodeId={id} kind="speaker" selected={selected}>
       <CatalogItemSelect
         nodeId={id}
         kind="speaker"

@@ -15,6 +15,11 @@ export type FlowNodeDefinition = {
   hasDatasheet: boolean;
   /** Cuántos admite una escena. Solo simulation está limitado: es el sumidero del sistema. */
   maxPerScene: number;
+  // Color de la franja que identifica el tipo en el lienzo. Va en una franja y NO en el borde
+  // porque el borde ya codifica la severidad de validación (rojo/ámbar): si el tipo también lo
+  // usara, un nodo con error perdería su color o el error perdería el suyo. Clases literales
+  // completas a propósito — Tailwind las descubre leyendo el código, no concatenando.
+  accentClass: string;
 };
 
 const UNLIMITED = Number.POSITIVE_INFINITY;
@@ -26,6 +31,7 @@ export const FLOW_NODE_DEFINITIONS: Record<FlowNodeKind, FlowNodeDefinition> = {
     catalogSlug: "sources",
     hasDatasheet: true,
     maxPerScene: UNLIMITED,
+    accentClass: "bg-amber-500",
   },
   microphone: {
     kind: "microphone",
@@ -33,6 +39,7 @@ export const FLOW_NODE_DEFINITIONS: Record<FlowNodeKind, FlowNodeDefinition> = {
     catalogSlug: "microphones",
     hasDatasheet: true,
     maxPerScene: UNLIMITED,
+    accentClass: "bg-violet-500",
   },
   console: {
     kind: "console",
@@ -40,6 +47,7 @@ export const FLOW_NODE_DEFINITIONS: Record<FlowNodeKind, FlowNodeDefinition> = {
     catalogSlug: "consoles",
     hasDatasheet: true,
     maxPerScene: UNLIMITED,
+    accentClass: "bg-sky-500",
   },
   pa: {
     kind: "pa",
@@ -47,6 +55,7 @@ export const FLOW_NODE_DEFINITIONS: Record<FlowNodeKind, FlowNodeDefinition> = {
     catalogSlug: "amplifiers",
     hasDatasheet: true,
     maxPerScene: UNLIMITED,
+    accentClass: "bg-rose-500",
   },
   speaker: {
     kind: "speaker",
@@ -54,6 +63,7 @@ export const FLOW_NODE_DEFINITIONS: Record<FlowNodeKind, FlowNodeDefinition> = {
     catalogSlug: "speakers",
     hasDatasheet: true,
     maxPerScene: UNLIMITED,
+    accentClass: "bg-emerald-500",
   },
   simulation: {
     kind: "simulation",
@@ -61,8 +71,13 @@ export const FLOW_NODE_DEFINITIONS: Record<FlowNodeKind, FlowNodeDefinition> = {
     catalogSlug: null,
     hasDatasheet: false,
     maxPerScene: 1,
+    accentClass: "bg-zinc-400",
   },
 };
+
+export function flowNodeDefinition(kind: FlowNodeKind): FlowNodeDefinition {
+  return FLOW_NODE_DEFINITIONS[kind];
+}
 
 export function flowNodeLabel(kind: FlowNodeKind): string {
   return FLOW_NODE_DEFINITIONS[kind].label;

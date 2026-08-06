@@ -9,12 +9,14 @@ import "@xyflow/react/dist/style.css";
 
 import {
   Background,
+  type ColorMode,
   type Connection,
   Controls,
   type NodeMouseHandler,
   ReactFlow,
   type Viewport,
 } from "@xyflow/react";
+import { useTheme } from "next-themes";
 import { FlowToolbar } from "@/features/signal-flow/components/flow-toolbar";
 import { FLOW_NODE_TYPES } from "@/features/signal-flow/components/nodes/node-types";
 import { SpecsPanel } from "@/features/signal-flow/components/specs-panel";
@@ -42,6 +44,11 @@ export function FlowEditor({ init }: { init: FlowStoreInit }) {
 function FlowCanvas() {
   useAutosaveFlow();
 
+  // React Flow trae su propio tema y por defecto se queda en claro: sin atarlo al de la app, sus
+  // controles y aristas se quedarían en colores de tema claro sobre un fondo oscuro.
+  const { resolvedTheme } = useTheme();
+  const colorMode: ColorMode = resolvedTheme === "dark" ? "dark" : "light";
+
   const nodes = useFlowStore((state) => state.nodes);
   const edges = useFlowStore((state) => state.edges);
   const viewport = useFlowStore((state) => state.viewport);
@@ -65,7 +72,11 @@ function FlowCanvas() {
         nodes={nodes}
         edges={edges}
         nodeTypes={FLOW_NODE_TYPES}
+        colorMode={colorMode}
         defaultViewport={viewport}
+        // Backspace es el único atajo de borrado que trae React Flow; en Windows la tecla que la
+        // gente usa es Supr, y sin esto no pasaba nada al pulsarla.
+        deleteKeyCode={["Backspace", "Delete"]}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={handleConnect}

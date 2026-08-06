@@ -20,7 +20,7 @@ export function SourceNode({
   const resolved = useResolvedNode(id, data);
 
   return (
-    <NodeShell nodeId={id} label="Fuente" selected={selected}>
+    <NodeShell nodeId={id} kind="source" selected={selected}>
       <CatalogItemSelect
         nodeId={id}
         kind="source"

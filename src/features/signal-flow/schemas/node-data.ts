@@ -16,9 +16,23 @@ import { z } from "zod";
 /** Nodo de equipo recién soltado en el lienzo: el id es null hasta que el usuario elige ítem. */
 const catalogItemIdSchema = z.cuid().nullable();
 
+/**
+ * Cómo sale la fuente hacia la consola.
+ *
+ * Es un dato de la ESCENA y no del catálogo: el mismo teclado va en estéreo a dos canales o
+ * sumado a mono según cómo se monte, así que no es una propiedad del instrumento que pueda vivir
+ * en SourceSpec. Al elegir un ítem de la familia `keys` el editor arranca en estéreo, que es lo
+ * habitual en sintetizadores y pianos digitales; el resto arranca en mono.
+ */
+export const sourceOutputModeSchema = z.enum(["mono", "stereo"]);
+export type SourceOutputMode = z.infer<typeof sourceOutputModeSchema>;
+
 const sourceNodeDataSchema = z.strictObject({
   kind: z.literal("source"),
   catalogItemId: catalogItemIdSchema,
+  // Default mono para que los grafos guardados antes de que esto existiera sigan parseando: sin
+  // él, abrir una escena vieja fallaría al leer un campo que nunca se escribió.
+  outputMode: sourceOutputModeSchema.default("mono"),
 });
 
 const microphoneNodeDataSchema = z.strictObject({
@@ -66,3 +80,4 @@ export const flowNodeDataSchema = z.discriminatedUnion("kind", [
 
 export type FlowNodeData = z.infer<typeof flowNodeDataSchema>;
 export type SpeakerNodeData = z.infer<typeof speakerNodeDataSchema>;
+export type SourceNodeData = z.infer<typeof sourceNodeDataSchema>;

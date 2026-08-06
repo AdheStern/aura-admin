@@ -20,7 +20,7 @@ export function ConsoleNode({
   const resolved = useResolvedNode(id, data);
 
   return (
-    <NodeShell nodeId={id} label="Consola" selected={selected}>
+    <NodeShell nodeId={id} kind="console" selected={selected}>
       <CatalogItemSelect
         nodeId={id}
         kind="console"

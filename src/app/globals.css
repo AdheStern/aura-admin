@@ -128,3 +128,46 @@
     @apply font-sans;
   }
 }
+
+/* Cursores del editor de flujo.
+
+ React Flow pide `cursor: grab` sobre los nodos y el lienzo y `cursor: crosshair` sobre los
+ conectores, y ahí quien dibuja es el sistema operativo: con esquemas de puntero claros de
+ Windows la cruz y la mano salen blancas y desaparecen sobre el lienzo, que también es blanco.
+ Se sustituyen por punteros propios en SVG, que sí controlamos.
+
+ Doble trazo a propósito —relleno oscuro con contorno claro— para que el mismo puntero se lea
+ sobre el lienzo claro y sobre el oscuro sin tener que cambiarlo con el tema. El par de números
+ del final es el punto activo (hotspot), no un margen: mal puesto, el clic cae desplazado. */
+/* Mano abierta para desplazar el lienzo. */
+.react-flow .react-flow__pane.draggable {
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 24 24' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke='%23ffffff' stroke-width='4'%3E%3Cpath d='M18 11V6a2 2 0 0 0-4 0'/%3E%3Cpath d='M14 10V4a2 2 0 0 0-4 0v2'/%3E%3Cpath d='M10 10.5V6a2 2 0 0 0-4 0v8'/%3E%3Cpath d='M18 8a2 2 0 0 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.3l-3.6-3.6a2 2 0 0 1 2.9-2.8L7 15'/%3E%3C/g%3E%3Cg stroke='%23111111' stroke-width='1.8'%3E%3Cpath d='M18 11V6a2 2 0 0 0-4 0'/%3E%3Cpath d='M14 10V4a2 2 0 0 0-4 0v2'/%3E%3Cpath d='M10 10.5V6a2 2 0 0 0-4 0v8'/%3E%3Cpath d='M18 8a2 2 0 0 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.3l-3.6-3.6a2 2 0 0 1 2.9-2.8L7 15'/%3E%3C/g%3E%3C/svg%3E")
+    13 13,
+    grab;
+}
+
+/* Al arrastrar manda el cursor nativo de "agarrando": es el único estado en el que el puntero
+   del sistema sí se distingue, porque cambia de forma respecto al de reposo. */
+.react-flow .react-flow__pane.dragging,
+.react-flow .react-flow__node.draggable.dragging {
+  cursor: grabbing;
+}
+
+/* Cruz de cuatro puntas: el nodo se arrastra en las dos direcciones, y así se distingue de un
+   vistazo del lienzo, que se desplaza. */
+.react-flow .react-flow__node.draggable {
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 24 24' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke='%23ffffff' stroke-width='4'%3E%3Cpath d='M12 3v18M3 12h18M12 3l-2.5 2.5M12 3l2.5 2.5M12 21l-2.5-2.5M12 21l2.5-2.5M3 12l2.5-2.5M3 12l2.5 2.5M21 12l-2.5-2.5M21 12l-2.5 2.5'/%3E%3C/g%3E%3Cg stroke='%23111111' stroke-width='1.8'%3E%3Cpath d='M12 3v18M3 12h18M12 3l-2.5 2.5M12 3l2.5 2.5M12 21l-2.5-2.5M12 21l2.5-2.5M3 12l2.5-2.5M3 12l2.5 2.5M21 12l-2.5-2.5M21 12l-2.5 2.5'/%3E%3C/g%3E%3C/svg%3E")
+    13 13,
+    move;
+}
+
+/* Sobre un conector no se mueve nada: se tira un cable. Cruz fina y con hueco al centro, para
+   no tapar el propio conector, que mide 8 px. */
+.react-flow .react-flow__handle.connectionindicator {
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 24 24' fill='none' stroke-linecap='round'%3E%3Cg stroke='%23ffffff' stroke-width='4'%3E%3Cpath d='M12 2v7M12 15v7M2 12h7M15 12h7'/%3E%3C/g%3E%3Cg stroke='%23111111' stroke-width='1.8'%3E%3Cpath d='M12 2v7M12 15v7M2 12h7M15 12h7'/%3E%3C/g%3E%3C/svg%3E")
+    13 13,
+    crosshair;
+}

@@ -22,7 +22,7 @@ export function PaNode({
   const resolved = useResolvedNode(id, data);
 
   return (
-    <NodeShell nodeId={id} label="Amplificador / PA" selected={selected}>
+    <NodeShell nodeId={id} kind="pa" selected={selected}>
       <CatalogItemSelect
         nodeId={id}
         kind="pa"

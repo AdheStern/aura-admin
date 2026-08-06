@@ -11,7 +11,12 @@ import { ConsoleDatasheet } from "@/features/catalogs/components/console-datashe
 import { MicrophoneDatasheet } from "@/features/catalogs/components/microphone-datasheet";
 import { SourceDatasheet } from "@/features/catalogs/components/source-datasheet";
 import { SpeakerDatasheet } from "@/features/catalogs/components/speaker-datasheet";
+import {
+  MicrophoneCharts,
+  SpeakerCharts,
+} from "@/features/signal-flow/components/node-charts";
 import { useResolvedNode } from "@/features/signal-flow/components/nodes/node-hooks";
+import { SourceSettingsForm } from "@/features/signal-flow/components/source-settings-form";
 import { SpeakerElectricalSummary } from "@/features/signal-flow/components/speaker-electrical-summary";
 import { SpeakerSettingsForm } from "@/features/signal-flow/components/speaker-settings-form";
 import { ValidationSummary } from "@/features/signal-flow/components/validation-summary";
@@ -61,8 +66,23 @@ function SelectedNodePanel({ node }: { node: FlowRfNode }) {
           <SpeakerSettingsForm nodeId={node.id} data={node.data} />
         </>
       ) : null}
+      {node.data.kind === "source" ? (
+        <SourceSettingsForm nodeId={node.id} data={node.data} />
+      ) : null}
+      <NodeCharts resolved={resolved} />
     </div>
   );
+}
+
+/** Los gráficos van al final: primero el dato duro, después la lectura visual del mismo dato. */
+function NodeCharts({ resolved }: { resolved: ResolvedNode }) {
+  if (!resolved.spec) return null;
+  if (resolved.kind === "microphone") {
+    return <MicrophoneCharts spec={resolved.spec} />;
+  }
+  if (resolved.kind === "speaker")
+    return <SpeakerCharts spec={resolved.spec} />;
+  return null;
 }
 
 function DatasheetOrNotice({ resolved }: { resolved: ResolvedNode }) {

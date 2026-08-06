@@ -13,6 +13,7 @@ import type { FlowRfNode } from "@/features/signal-flow/mapping/react-flow-adapt
 import { flowNodeDataSchema } from "@/features/signal-flow/schemas/node-data";
 import {
   checkConnection,
+  defaultSourceOutputMode,
   hasSimulationNode,
   revalidate,
 } from "@/features/signal-flow/store/flow-store-helpers";
@@ -82,15 +83,55 @@ export function createFlowStore(init: FlowStoreInit) {
       revalidate(set, get);
     },
 
+    // Borra también sus aristas: dejarlas apuntando a un nodo que ya no existe convertiría el
+    // grafo en algo que solo el validador podría explicar, y el usuario solo pidió quitar la caja.
+    deleteNode: (nodeId) => {
+      set((state) => ({
+        nodes: state.nodes.filter((node) => node.id !== nodeId),
+        edges: state.edges.filter(
+          (edge) => edge.source !== nodeId && edge.target !== nodeId,
+        ),
+        selectedNodeId:
+          state.selectedNodeId === nodeId ? null : state.selectedNodeId,
+      }));
+      revalidate(set, get);
+    },
+
     setNodeCatalogItem: (nodeId, catalogItemId) => {
       set((state) => ({
         nodes: state.nodes.map((node) => {
           if (node.id !== nodeId || node.data.kind === "simulation") {
             return node;
           }
+          if (node.data.kind === "source") {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                catalogItemId,
+                outputMode: defaultSourceOutputMode(
+                  get().library.snapshot,
+                  catalogItemId,
+                ),
+              },
+            };
+          }
           return { ...node, data: { ...node.data, catalogItemId } };
         }),
       }));
+      revalidate(set, get);
+    },
+
+    setSourceOutputMode: (nodeId, mode) => {
+      set((state) => ({
+        nodes: state.nodes.map((node) =>
+          node.id === nodeId && node.data.kind === "source"
+            ? { ...node, data: { ...node.data, outputMode: mode } }
+            : node,
+        ),
+      }));
+      // Sí revalida: pasar a mono deja sin conector la arista de la derecha, y el validador es
+      // quien tiene que decirlo.
       revalidate(set, get);
     },
 

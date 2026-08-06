@@ -29,7 +29,7 @@ const FAN_OUT = Number.POSITIVE_INFINITY;
 export function portsOf(node: ResolvedNode): FlowPort[] {
   switch (node.kind) {
     case "source":
-      return sourcePorts();
+      return sourcePorts(node);
     case "microphone":
       return microphonePorts();
     case "console":
@@ -59,7 +59,13 @@ export function findPort(node: ResolvedNode, portId: string): FlowPort | null {
 // micrófono) y siempre ofrece una salida de línea (DI o pastilla). Que la línea sea razonable lo
 // dice spec.amplified, pero es un aviso del validador, no una prohibición: un cajón con pastilla
 // o una batería con trigger existen, y el doc admite source→console sin condiciones.
-function sourcePorts(): FlowPort[] {
+function sourcePorts(
+  node: Extract<ResolvedNode, { kind: "source" }>,
+): FlowPort[] {
+  // El estéreo depende del nodo, no del datasheet: un sintetizador o un piano digital salen por L
+  // y R hacia dos canales de consola, y sumarlos a mono es una decisión de montaje.
+  const isStereo = node.data.outputMode === "stereo";
+
   return [
     portOf(
       NAMED_PORT_IDS.sourceAcoustic,
@@ -68,7 +74,24 @@ function sourcePorts(): FlowPort[] {
       "Al aire",
       FAN_OUT,
     ),
-    portOf(NAMED_PORT_IDS.sourceDirect, "out", "line", "Línea / DI", FAN_OUT),
+    portOf(
+      NAMED_PORT_IDS.sourceDirect,
+      "out",
+      "line",
+      isStereo ? "Línea L" : "Línea / DI",
+      FAN_OUT,
+    ),
+    ...(isStereo
+      ? [
+          portOf(
+            NAMED_PORT_IDS.sourceDirectRight,
+            "out",
+            "line",
+            "Línea R",
+            FAN_OUT,
+          ),
+        ]
+      : []),
   ];
 }
 

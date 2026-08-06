@@ -19,7 +19,7 @@ export function SimulationNode({
   const resolved = useResolvedNode(id, data);
 
   return (
-    <NodeShell nodeId={id} label="Simulación" selected={selected}>
+    <NodeShell nodeId={id} kind="simulation" selected={selected}>
       <p className="text-[11px] text-muted-foreground">
         Punto de entrada al editor de recinto.
       </p>

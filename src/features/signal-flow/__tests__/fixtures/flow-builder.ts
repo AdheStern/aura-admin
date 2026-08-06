@@ -18,6 +18,7 @@ import type {
   ResolvedNode,
   SpecStatus,
 } from "@/features/signal-flow/model/resolved-flow";
+import type { SourceOutputMode } from "@/features/signal-flow/schemas/node-data";
 import type { FlowNodeKind } from "@/features/signal-flow/schemas/node-kinds";
 import type { FlowEdge } from "@/features/signal-flow/schemas/signal-flow";
 
@@ -26,12 +27,13 @@ const AT = { x: 0, y: 0 };
 export function sourceNode(
   id: string,
   spec: SourceSpec = sourceSpec(),
+  outputMode: SourceOutputMode = "mono",
 ): ResolvedNode {
   return {
     id,
     position: AT,
     kind: "source",
-    data: { kind: "source", catalogItemId: `cat-${id}` },
+    data: { kind: "source", catalogItemId: `cat-${id}`, outputMode },
     specStatus: "resolved",
     spec,
   };
@@ -123,6 +125,7 @@ export function brokenNode(
       ...(kind === "speaker"
         ? { levelDb: 0, polarityInverted: false, delayMs: 0 }
         : {}),
+      ...(kind === "source" ? { outputMode: "mono" } : {}),
     },
     specStatus,
     spec: null,

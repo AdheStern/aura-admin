@@ -19,7 +19,7 @@ export function MicrophoneNode({
   const resolved = useResolvedNode(id, data);
 
   return (
-    <NodeShell nodeId={id} label="Micrófono" selected={selected}>
+    <NodeShell nodeId={id} kind="microphone" selected={selected}>
       <CatalogItemSelect
         nodeId={id}
         kind="microphone"

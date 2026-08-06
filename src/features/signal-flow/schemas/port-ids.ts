@@ -12,6 +12,11 @@ export const NAMED_PORT_IDS = {
   sourceAcoustic: "acoustic",
   /** Salida de línea de una fuente (DI o pastilla): va directa a consola/procesador. */
   sourceDirect: "di",
+  // Canal derecho de una fuente estéreo. El izquierdo reusa `di` en vez de estrenar un `di-l`:
+  // así pasar una fuente de mono a estéreo NO invalida el cable que ya estaba puesto, solo añade
+  // uno. Al revés (estéreo → mono) el cable de la derecha sí queda colgando, y el validador lo
+  // reporta como PORT_OUT_OF_RANGE, que es la verdad: ese conector dejó de existir.
+  sourceDirectRight: "di-r",
   /** Entrada única de micrófono y parlante. */
   input: "in",
   /** Salida única de micrófono. */

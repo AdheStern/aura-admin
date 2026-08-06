@@ -10,13 +10,37 @@ import {
   toSignalFlowDocument,
 } from "@/features/signal-flow/mapping/react-flow-adapter";
 import { buildGraphIndex } from "@/features/signal-flow/model/graph-index";
-import { hydrateFlow } from "@/features/signal-flow/model/resolved-flow";
+import {
+  catalogSnapshotKey,
+  type FlowCatalogSnapshot,
+  hydrateFlow,
+} from "@/features/signal-flow/model/resolved-flow";
 import { canConnect } from "@/features/signal-flow/rules/can-connect";
+import type { SourceOutputMode } from "@/features/signal-flow/schemas/node-data";
 import type { FlowStoreState } from "@/features/signal-flow/store/flow-store-types";
 import { validateSignalFlow } from "@/features/signal-flow/validation/validate-signal-flow";
 
 export function hasSimulationNode(nodes: readonly FlowRfNode[]): boolean {
   return nodes.some((node) => node.data.kind === "simulation");
+}
+
+/**
+ * Estéreo por defecto en la familia `keys`, mono en el resto.
+ *
+ * Sintetizadores y pianos digitales salen por L y R salvo que se decida sumarlos; el resto de
+ * familias del catálogo son mono de origen. Es solo el punto de partida al elegir el ítem: el
+ * usuario lo cambia después en el panel, porque el modo depende del montaje y no del instrumento.
+ */
+export function defaultSourceOutputMode(
+  snapshot: FlowCatalogSnapshot,
+  catalogItemId: string | null,
+): SourceOutputMode {
+  if (!catalogItemId) return "mono";
+
+  const entry = snapshot.get(catalogSnapshotKey("source", catalogItemId));
+  return entry?.kind === "source" && entry.spec.kind === "keys"
+    ? "stereo"
+    : "mono";
 }
 
 export function checkConnection(

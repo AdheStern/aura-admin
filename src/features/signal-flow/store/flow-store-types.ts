@@ -15,6 +15,7 @@ import type {
   FlowRfNode,
 } from "@/features/signal-flow/mapping/react-flow-adapter";
 import type { FlowCatalogLibrary } from "@/features/signal-flow/queries/list-flow-catalog-library";
+import type { SourceOutputMode } from "@/features/signal-flow/schemas/node-data";
 import type { FlowNodeKind } from "@/features/signal-flow/schemas/node-kinds";
 import type { SignalFlowValidation } from "@/features/signal-flow/validation/validate-signal-flow";
 
@@ -44,7 +45,9 @@ export type FlowStoreState = {
   connect: (connection: Connection) => void;
   setViewport: (viewport: Viewport) => void;
   addNode: (kind: FlowNodeKind, position: XYPosition) => void;
+  deleteNode: (nodeId: string) => void;
   setNodeCatalogItem: (nodeId: string, catalogItemId: string | null) => void;
+  setSourceOutputMode: (nodeId: string, mode: SourceOutputMode) => void;
   updateSpeakerSettings: (nodeId: string, patch: SpeakerSettingsPatch) => void;
   selectNode: (nodeId: string | null) => void;
   setSaveStatus: (status: SaveStatus) => void;

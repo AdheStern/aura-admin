@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   SidebarInset,
   SidebarProvider,
@@ -27,6 +28,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       <SidebarInset>
         <header className="flex items-center border-b px-4 py-3">
           <SidebarTrigger />
+          <div className="ml-auto">
+            <ThemeToggle />
+          </div>
         </header>
         <main className="flex flex-1 flex-col px-6 py-8 sm:px-10">
           {children}
