@@ -11,62 +11,26 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { OCTAVE_BANDS_HZ, type OctaveBandHz } from "@/contracts/bands";
 import { NumberField } from "@/features/room-editor/components/panels/number-field";
+import { MethodAndBandFields } from "@/features/simulation/components/method-and-band-fields";
 import { useSimulationStore } from "@/features/simulation/store/simulation-store";
-
-const METHODS = [
-  { id: "statistical", label: "Estadístico" },
-  { id: "hybrid", label: "Híbrido" },
-  { id: "direct_field", label: "Campo directo" },
-] as const;
 
 /** Las tres densidades de grilla de §5.3. La fina multiplica por cuatro los puntos a calcular. */
 const RESOLUTIONS_M = [0.5, 1, 2] as const;
 
 const ISM_MIN_ORDER = 3;
 const ISM_MAX_ORDER = 17;
+const DEFAULT_RAYS = 20_000;
+const DEFAULT_SEED = 42;
 
 export function AdvancedConfigFields() {
   const config = useSimulationStore((state) => state.simulation.config);
   const canManage = useSimulationStore((state) => state.canManage);
   const setConfig = useSimulationStore((state) => state.setConfig);
 
-  function toggleMethod(id: (typeof METHODS)[number]["id"], on: boolean) {
-    const methods = on
-      ? [...config.methods, id]
-      : config.methods.filter((method) => method !== id);
-    // Al menos uno: el contrato lo exige y sin método no hay nada que calcular.
-    if (methods.length > 0) setConfig({ methods });
-  }
-
-  function toggleBand(band: OctaveBandHz, on: boolean) {
-    const bands = on
-      ? OCTAVE_BANDS_HZ.filter((b) => b === band || config.bands.includes(b))
-      : config.bands.filter((b) => b !== band);
-    if (bands.length > 0) setConfig({ bands: [...bands] });
-  }
-
   return (
     <div className="flex flex-col gap-3">
-      <fieldset className="flex flex-col gap-1.5">
-        <legend className="text-sm">Métodos</legend>
-        {METHODS.map((method) => (
-          <div key={method.id} className="flex items-center gap-2">
-            <Checkbox
-              id={`method-${method.id}`}
-              checked={config.methods.includes(method.id)}
-              disabled={!canManage}
-              onCheckedChange={(checked) =>
-                toggleMethod(method.id, checked === true)
-              }
-            />
-            <Label htmlFor={`method-${method.id}`}>{method.label}</Label>
-          </div>
-        ))}
-      </fieldset>
+      <MethodAndBandFields />
 
       <NumberField
         id="config-ism-order"
@@ -75,27 +39,20 @@ export function AdvancedConfigFields() {
         step={1}
         min={ISM_MIN_ORDER}
         onChange={(maxOrder) =>
-          setConfig({
-            ism: {
-              maxOrder: Math.min(
-                ISM_MAX_ORDER,
-                Math.max(ISM_MIN_ORDER, Math.round(maxOrder)),
-              ),
-            },
-          })
+          setConfig({ ism: { maxOrder: clampOrder(maxOrder) } })
         }
       />
       <NumberField
         id="config-rays"
         label="Nº de rayos"
-        value={config.rayTracing?.nRays ?? 20_000}
+        value={config.rayTracing?.nRays ?? DEFAULT_RAYS}
         step={1000}
         min={1}
         onChange={(nRays) =>
           setConfig({
             rayTracing: {
               nRays: Math.max(1, Math.round(nRays)),
-              seed: config.rayTracing?.seed ?? 42,
+              seed: config.rayTracing?.seed ?? DEFAULT_SEED,
             },
           })
         }
@@ -133,48 +90,27 @@ export function AdvancedConfigFields() {
         }
       />
 
-      <fieldset className="flex flex-col gap-1.5">
-        <legend className="text-sm">Bandas (Hz)</legend>
-        <div className="flex flex-wrap gap-2">
-          {OCTAVE_BANDS_HZ.map((band) => (
-            <div key={band} className="flex items-center gap-1">
-              <Checkbox
-                id={`band-${band}`}
-                checked={config.bands.includes(band)}
-                disabled={!canManage}
-                onCheckedChange={(checked) =>
-                  toggleBand(band, checked === true)
-                }
-              />
-              <Label htmlFor={`band-${band}`}>{band}</Label>
-            </div>
-          ))}
-        </div>
-      </fieldset>
-
       <div className="flex flex-col gap-1.5">
         <span className="text-sm">Suma entre cajas</span>
         <div className="flex gap-1">
-          <Button
-            variant={config.summation === "energy" ? "default" : "outline"}
-            size="sm"
-            className="flex-1"
-            disabled={!canManage}
-            onClick={() => setConfig({ summation: "energy" })}
-          >
-            Energía
-          </Button>
-          <Button
-            variant={config.summation === "complex" ? "default" : "outline"}
-            size="sm"
-            className="flex-1"
-            disabled={!canManage}
-            onClick={() => setConfig({ summation: "complex" })}
-          >
-            Compleja
-          </Button>
+          {(["energy", "complex"] as const).map((summation) => (
+            <Button
+              key={summation}
+              variant={config.summation === summation ? "default" : "outline"}
+              size="sm"
+              className="flex-1"
+              disabled={!canManage}
+              onClick={() => setConfig({ summation })}
+            >
+              {summation === "energy" ? "Energía" : "Compleja"}
+            </Button>
+          ))}
         </div>
       </div>
     </div>
   );
+}
+
+function clampOrder(value: number): number {
+  return Math.min(ISM_MAX_ORDER, Math.max(ISM_MIN_ORDER, Math.round(value)));
 }
