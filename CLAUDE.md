@@ -3,8 +3,9 @@
 # AURA — aura-admin
 
 ## Qué es
-App de administración de AURA (simulación acústica de recintos cerrados). Doc maestro:
-`develop-plan.html` (raíz del repo) — fuente de verdad; ante conflicto, gana el doc.
+App de administración de AURA (simulación acústica de recintos cerrados). Hay un doc maestro
+que es la fuente de verdad — ante conflicto, gana el doc. No está versionado y no se publica:
+vive solo en la copia local de quien trabaja el repo.
 
 ## Comandos
 pnpm dev · pnpm test · pnpm biome check --write · pnpm prisma migrate dev · pnpm typecheck
