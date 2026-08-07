@@ -189,7 +189,7 @@ model Scene {
   project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   name       String
   signalFlow Json     @default("{}")
-  room       Json     @default("{}")
+  room       Json     @default("{}") // RoomDocument v1: el borrador del editor 2D, que compila a RoomGeometry (ver 4.2)
   status     String   @default("DRAFT") // SceneStatus: DRAFT|FLOW_READY|ROOM_READY|SIMULATED
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

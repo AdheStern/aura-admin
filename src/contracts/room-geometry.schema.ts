@@ -2,6 +2,14 @@
 // Fuente de verdad TS de room-geometry.schema.json, la copia espejo que comparte con aura-engine.
 // Estricto (no laxo como los catálogos): un campo de más aquí es un error del editor, y en
 // geometría un error silencioso se paga con una simulación entera mal calculada.
+//
+// CONVENCIÓN MURO↔ARISTA (normativa, sin representación en el JSON Schema): la k-ésima superficie
+// de tipo "wall" dentro de `surfaces` es la arista k del footprint, la que va del vértice k al k+1
+// (y la última, del último vértice al primero). El id del muro es opaco: quien reparta materiales
+// —RoomBuilder incluido— debe usar el ORDEN, no interpretar el nombre. De ahí cuelga el marco local
+// de las aberturas, descrito en `openings.rect`.
+// Sin esta convención el reparto de materiales solo funcionaría en plantas rectangulares con muros
+// nombrados por punto cardinal, que es lo que hace CANON-01 y no generaliza a un polígono cualquiera.
 
 import { z } from "zod";
 
@@ -45,7 +53,12 @@ const openingSchema = z.strictObject({
   id: z.string().min(1),
   type: z.enum(["window", "door"]),
   surfaceId: z.string().min(1),
-  /** [x, y, ancho, alto] en coordenadas locales de la superficie, metros. */
+  /**
+   * [x, y, ancho, alto] en coordenadas locales del muro, metros: `x` se mide desde el PRIMER
+   * vértice de su arista (el vértice k) avanzando hacia el segundo, e `y` desde el piso hacia
+   * arriba. El muro se identifica por `surfaceId`, y su arista por la posición de esa superficie
+   * entre las de tipo "wall" (convención de la cabecera).
+   */
   rect: z.tuple([
     z.number(),
     z.number(),
@@ -73,7 +86,11 @@ export const roomGeometrySchema = z
       h: z.number().positive(),
     }),
 
-    /** Lista parcial: las superficies sin entrada toman el material por defecto con aviso. */
+    /**
+     * Lista parcial: las superficies sin entrada toman el material por defecto con aviso.
+     * Las de tipo "wall" van en orden de arista del footprint (convención de la cabecera); piso y
+     * techo pueden ir en cualquier posición porque no hay nada que ordenar en ellos.
+     */
     surfaces: z.array(surfaceSchema),
     obstacles: z.array(obstacleSchema),
     openings: z.array(openingSchema),
