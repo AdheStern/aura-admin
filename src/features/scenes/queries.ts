@@ -33,6 +33,7 @@ export type SceneWithRole = {
   name: string;
   status: SceneStatus;
   signalFlow: unknown;
+  room: unknown;
   role: ProjectRole;
 };
 
@@ -49,6 +50,7 @@ export async function getSceneWithRole(
       name: true,
       status: true,
       signalFlow: true,
+      room: true,
     },
   });
   if (!scene) return null;
@@ -62,6 +64,7 @@ export async function getSceneWithRole(
     name: scene.name,
     status: scene.status as SceneStatus,
     signalFlow: scene.signalFlow,
+    room: scene.room,
     role: access.role,
   };
 }
