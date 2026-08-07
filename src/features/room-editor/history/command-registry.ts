@@ -26,6 +26,10 @@ import {
   applyReplaceOpening,
 } from "@/features/room-editor/history/commands/opening-commands";
 import {
+  applyRemoveSpeakerPlacement,
+  applySetSpeakerPlacement,
+} from "@/features/room-editor/history/commands/speaker-commands";
+import {
   applySetHeight,
   applySetSurfaceMaterial,
 } from "@/features/room-editor/history/commands/surface-commands";
@@ -98,6 +102,18 @@ export const ROOM_COMMANDS: RoomCommandRegistry = {
     label: "Editar zona de audiencia",
     apply: applyReplaceAudienceZone,
     coalesceKey: (command) => `replaceAudienceZone:${command.zone.id}`,
+  },
+
+  // Un arrastre del gizmo emite una colocación por frame, igual que mover un vértice: se funden
+  // por nodo para que deshacer devuelva la caja a donde estaba antes del gesto, no un frame atrás.
+  setSpeakerPlacement: {
+    label: "Colocar parlante",
+    apply: applySetSpeakerPlacement,
+    coalesceKey: (command) => `setSpeakerPlacement:${command.speaker.nodeId}`,
+  },
+  removeSpeakerPlacement: {
+    label: "Quitar colocación del parlante",
+    apply: applyRemoveSpeakerPlacement,
   },
 
   setStage: {

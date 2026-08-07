@@ -18,6 +18,7 @@ import {
   roomDocumentSchema,
   roomObstacleSchema,
   roomOpeningSchema,
+  roomSpeakerSchema,
   roomStageSchema,
   roomSurfaceSchema,
   roomZoneSchema,
@@ -98,6 +99,19 @@ export const roomCommandSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     kind: z.literal("replaceAudienceZone"),
     zone: roomZoneSchema,
+  }),
+
+  // Colocar una caja es un UPSERT, no un insert/remove/replace como el resto de familias: el
+  // parlante ya existe (lo trajo el grafo) y lo único que se crea o se pisa aquí es su colocación,
+  // que está identificada por el nodo. De ahí que el inverso de la primera colocación sea quitarla
+  // —volver a "sin colocar", que es un estado real— y el de las siguientes, restaurar la anterior.
+  z.strictObject({
+    kind: z.literal("setSpeakerPlacement"),
+    speaker: roomSpeakerSchema,
+  }),
+  z.strictObject({
+    kind: z.literal("removeSpeakerPlacement"),
+    nodeId: idSchema,
   }),
 
   /** null borra el escenario: es único, así que no necesita insert/remove propios. */

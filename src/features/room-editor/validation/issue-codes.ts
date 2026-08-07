@@ -33,6 +33,10 @@ const ISSUE_SEVERITY = {
   OBSTACLE_OVER_AUDIENCE: "warning",
   OPENINGS_OVERLAP: "warning",
   OPENING_AREA_EXCESSIVE: "warning",
+  // Aviso y no error aunque el motor no sepa qué hacer con una fuente fuera del volumen: la caja
+  // sigue estando en el grafo y el recinto sigue compilando: lo que falla es la colocación, y
+  // bloquear ROOM_READY por ella obligaría a pasar por el 3D para dar por buena una geometría.
+  SPEAKER_OUTSIDE_ROOM: "warning",
 } as const satisfies Record<string, RoomIssueSeverity>;
 
 export type RoomIssueCode = keyof typeof ISSUE_SEVERITY;
@@ -45,7 +49,9 @@ export type RoomIssueTarget =
   | { kind: "surface"; id: string }
   | { kind: "obstacle"; id: string }
   | { kind: "opening"; id: string }
-  | { kind: "zone"; id: string };
+  | { kind: "zone"; id: string }
+  /** `id` es el nodeId del grafo: el recinto no le pone id propio a una caja que no crea. */
+  | { kind: "speaker"; id: string };
 
 export type RoomIssue = {
   code: RoomIssueCode;

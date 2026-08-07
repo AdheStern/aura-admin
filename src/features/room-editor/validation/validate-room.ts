@@ -14,6 +14,7 @@ import {
   checkMaterials,
   checkObstacles,
   checkOpenings,
+  checkSpeakers,
   checkSurfaces,
   checkZones,
 } from "@/features/room-editor/validation/checks";
@@ -37,6 +38,7 @@ const CHECKS = [
   checkZones,
   checkObstacles,
   checkOpenings,
+  checkSpeakers,
 ];
 
 export function validateRoom(

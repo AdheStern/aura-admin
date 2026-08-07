@@ -5,5 +5,6 @@ export * from "./check-height";
 export * from "./check-materials";
 export * from "./check-obstacles";
 export * from "./check-openings";
+export * from "./check-speakers";
 export * from "./check-surfaces";
 export * from "./check-zones";

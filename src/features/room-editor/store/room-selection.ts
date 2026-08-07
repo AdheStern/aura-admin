@@ -16,7 +16,11 @@ export type RoomSelection =
   | { kind: "surface"; id: string }
   | { kind: "obstacle"; id: string }
   | { kind: "opening"; id: string }
-  | { kind: "zone"; id: string };
+  | { kind: "zone"; id: string }
+  /** `id` es el nodeId del grafo. Solo se puede elegir desde el editor 3D: en la planta cenital una
+   *  caja es un punto sin superficie a la que apuntar, y su altura —lo que de verdad se ajusta— no
+   *  se ve. */
+  | { kind: "speaker"; id: string };
 
 /** Selecciona lo que señala un RoomIssue al hacer click sobre él en el panel de validación. */
 export function selectionFromIssueTarget(
@@ -33,6 +37,8 @@ export function selectionFromIssueTarget(
       return { kind: "opening", id: target.id };
     case "zone":
       return { kind: "zone", id: target.id };
+    case "speaker":
+      return { kind: "speaker", id: target.id };
     default:
       return null;
   }

@@ -68,6 +68,26 @@ export const roomOpeningSchema = z.strictObject({
   materialId: materialIdSchema,
 });
 
+/**
+ * Dónde está y hacia dónde apunta una caja, en el marco del CONTRATO: `position` es [x, y, z] con
+ * z = altura, igual que SimulationRequest.sources[] (three.js es Y-up y convierte al pintar).
+ *
+ * El grafo manda QUIÉN existe y el recinto DÓNDE está — la frontera que declara la cabecera de
+ * resolve-flow-electrical.ts. De ahí que la clave sea `nodeId`, el id del nodo `speaker` del flujo:
+ * aquí no se pueden crear parlantes, solo colocar los que el flujo ya trajo. Una colocación cuyo
+ * nodo ya no existe es inerte (el editor y el compilador la ignoran), no un documento inválido.
+ */
+export const roomSpeakerSchema = z.strictObject({
+  nodeId: z.string().min(1),
+  position: z.tuple([z.number(), z.number(), z.number()]),
+  /** yaw gira sobre la vertical (0° = mirando a +x), pitch inclina y roll gira sobre el eje de tiro. */
+  rotationDeg: z.strictObject({
+    yaw: z.number(),
+    pitch: z.number(),
+    roll: z.number(),
+  }),
+});
+
 export const roomZoneSchema = z.strictObject({
   id: z.string().min(1),
   polygon: polygon2dSchema,
@@ -96,6 +116,11 @@ export const roomDocumentSchema = z.strictObject({
     stage: roomStageSchema.nullable(),
     audience: z.array(roomZoneSchema),
   }),
+  // Con default porque llega en la Fase 4 sobre escenas ya guardadas (y sobre las cuatro fixtures):
+  // exigirlo dejaría de parsear todo documento escrito antes de que los parlantes existieran.
+  // Parcial a propósito — solo están los que el usuario movió; el resto los resuelve
+  // model/speaker-placement.ts con una posición por defecto que no hace falta persistir.
+  speakers: z.array(roomSpeakerSchema).default([]),
 });
 
 export type RoomDocument = z.infer<typeof roomDocumentSchema>;
@@ -104,6 +129,7 @@ export type RoomObstacle = z.infer<typeof roomObstacleSchema>;
 export type RoomOpening = z.infer<typeof roomOpeningSchema>;
 export type RoomZone = z.infer<typeof roomZoneSchema>;
 export type RoomStage = z.infer<typeof roomStageSchema>;
+export type RoomSpeaker = z.infer<typeof roomSpeakerSchema>;
 
 /** Altura de una sala corriente. El usuario la ajusta; no hay valor "neutro" que no sea mentira. */
 export const DEFAULT_ROOM_HEIGHT_M = 4;
@@ -122,4 +148,5 @@ export const EMPTY_ROOM: RoomDocument = {
   obstacles: [],
   openings: [],
   zones: { stage: null, audience: [] },
+  speakers: [],
 };
