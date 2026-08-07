@@ -190,6 +190,11 @@ model Scene {
   name       String
   signalFlow Json     @default("{}")
   room       Json     @default("{}") // RoomDocument v1: el borrador del editor 2D, que compila a RoomGeometry (ver 4.2)
+  // SceneSimulation v1: ambiente + config que el panel del editor 3D edita ANTES de simular. El doc
+  // maestro solo declara dónde vive la config CONGELADA (Simulation.config, Fase 5/6) y RoomGeometry
+  // no admite ninguno de los dos, así que el borrador necesitaba columna propia: "a cuántos grados
+  // está la sala" y "con qué orden ISM se calcula" no son geometría del recinto.
+  simulation Json     @default("{}")
   status     String   @default("DRAFT") // SceneStatus: DRAFT|FLOW_READY|ROOM_READY|SIMULATED
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

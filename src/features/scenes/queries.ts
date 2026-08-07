@@ -34,6 +34,8 @@ export type SceneWithRole = {
   status: SceneStatus;
   signalFlow: unknown;
   room: unknown;
+  /** SceneSimulation v1: ambiente y configuración del panel del editor 3D. */
+  simulation: unknown;
   role: ProjectRole;
 };
 
@@ -51,6 +53,7 @@ export async function getSceneWithRole(
       status: true,
       signalFlow: true,
       room: true,
+      simulation: true,
     },
   });
   if (!scene) return null;
@@ -65,6 +68,7 @@ export async function getSceneWithRole(
     status: scene.status as SceneStatus,
     signalFlow: scene.signalFlow,
     room: scene.room,
+    simulation: scene.simulation,
     role: access.role,
   };
 }

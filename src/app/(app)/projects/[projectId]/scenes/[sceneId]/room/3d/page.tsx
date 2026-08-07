@@ -10,6 +10,7 @@ import { listRoomMaterialOptions } from "@/features/room-editor/queries/list-roo
 import { parseRoom } from "@/features/room-editor/schemas/parse-room";
 import { validateRoom } from "@/features/room-editor/validation/validate-room";
 import { getSceneWithRole } from "@/features/scenes/queries";
+import { parseSceneSimulation } from "@/features/simulation/schemas/parse-scene-simulation";
 import { getActiveUser } from "@/lib/session";
 
 export default async function SceneRoom3dPage({
@@ -26,8 +27,9 @@ export default async function SceneRoom3dPage({
   if (!scene || scene.projectId !== projectId) notFound();
 
   const parsedDocument = parseRoom(scene.room);
-  // No debería pasar nunca: saveRoom valida antes de persistir, igual que en la página del 2D.
-  if (!parsedDocument.ok) notFound();
+  const parsedSimulation = parseSceneSimulation(scene.simulation);
+  // No debería pasar nunca: las actions validan antes de persistir, igual que en la página del 2D.
+  if (!parsedDocument.ok || !parsedSimulation.ok) notFound();
 
   const [materialLibrary, materialColorsById, speakers] = await Promise.all([
     listRoomMaterialOptions(),
@@ -62,6 +64,7 @@ export default async function SceneRoom3dPage({
           validation,
         }}
         speakers={speakers}
+        simulation={parsedSimulation.data}
         materialColorsById={materialColorsById}
       />
     </div>

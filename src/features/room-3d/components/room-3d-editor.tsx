@@ -19,32 +19,35 @@ import {
 import { useAutosaveRoom } from "@/features/room-editor/hooks/use-autosave-room";
 import type { RoomStoreInit } from "@/features/room-editor/store/room-store";
 import { RoomStoreProvider } from "@/features/room-editor/store/room-store-provider";
+import { useAutosaveSimulation } from "@/features/simulation/hooks/use-autosave-simulation";
+import type { SceneSimulation } from "@/features/simulation/schemas/scene-simulation";
+import { SimulationStoreProvider } from "@/features/simulation/store/simulation-store";
 
 export function Room3dEditor({
   init,
   speakers,
+  simulation,
   materialColorsById,
 }: {
   init: RoomStoreInit;
   speakers: SpeakerStoreInit["speakers"];
+  simulation: SceneSimulation;
   materialColorsById: MaterialNrcById;
 }) {
+  const scoped = { sceneId: init.sceneId, canManage: init.canManage };
+
   return (
     <RoomStoreProvider init={init}>
-      <SpeakerStoreProvider
-        init={{
-          sceneId: init.sceneId,
-          canManage: init.canManage,
-          speakers,
-        }}
-      >
-        <div className="flex h-[80vh] min-h-[600px] flex-col rounded-lg border">
-          <Room3dToolbar />
-          <div className="flex min-h-0 flex-1">
-            <CanvasWithAutosave materialColorsById={materialColorsById} />
-            <Room3dPropertiesPanel />
+      <SpeakerStoreProvider init={{ ...scoped, speakers }}>
+        <SimulationStoreProvider init={{ ...scoped, simulation }}>
+          <div className="flex h-[80vh] min-h-[600px] flex-col rounded-lg border">
+            <Room3dToolbar />
+            <div className="flex min-h-0 flex-1">
+              <CanvasWithAutosave materialColorsById={materialColorsById} />
+              <Room3dPropertiesPanel />
+            </div>
           </div>
-        </div>
+        </SimulationStoreProvider>
       </SpeakerStoreProvider>
     </RoomStoreProvider>
   );
@@ -57,5 +60,6 @@ function CanvasWithAutosave({
 }) {
   useAutosaveRoom();
   useAutosaveSpeakerAudio();
+  useAutosaveSimulation();
   return <Room3dCanvas materialColorsById={materialColorsById} />;
 }
