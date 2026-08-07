@@ -5,9 +5,18 @@
 // al contrato (to-room-geometry.ts). Cada pieza lleva su RoomSelection para que el picking del
 // canvas 3D solo tenga que decodificar qué malla tocó, nunca adivinar a qué pertenece.
 //
-// EJE: (x, y) del documento (planta, metros) pasa a (x, z) en three.js; "y" en three.js es la
-// altura. Así la cámara y las luces por defecto (que asumen "arriba" = +y) funcionan sin ajustes.
+// El cambio de marco (contrato Z-up → three.js Y-up) lo hace model/scene-frame.ts, en un solo sitio.
+//
+// TODAS las normales apuntan hacia DENTRO del recinto, y de eso depende que la sala se pueda usar:
+// pintadas con `side: FrontSide`, las caras entre la cámara y el interior quedan descartadas y el
+// recinto se ve como una casa de muñecas abierta desde cualquier ángulo. Sin esto la sala es una
+// caja opaca y no hay forma de ver —ni de clicar— un parlante colocado dentro. Por eso el piso se
+// triangula al revés que el techo, y por eso una abertura se separa de su muro hacia dentro.
 
+import {
+  type ScenePoint,
+  toScenePlanPoint,
+} from "@/features/room-3d/model/scene-frame";
 import {
   inwardNormalM,
   polygonEdges,
@@ -23,7 +32,7 @@ import type {
 } from "@/features/room-editor/schemas/room-document";
 import type { RoomSelection } from "@/features/room-editor/store/room-selection";
 
-export type Point3d = readonly [number, number, number];
+export type Point3d = ScenePoint;
 
 export type WallPiece = {
   selection: Extract<RoomSelection, { kind: "surface" }>;
@@ -62,12 +71,9 @@ export type ExtrudedRoom = {
 };
 
 /** Cuánto se separa una abertura de su muro para no competir por los mismos píxeles (z-fighting):
- *  es una superposición visual, no una resta de la malla, y a distancia real de sala es invisible. */
+ *  es una superposición visual, no una resta de la malla, y a distancia real de sala es invisible.
+ *  Va hacia DENTRO porque la sala se mira desde dentro (ver la nota de las normales más abajo). */
 const OPENING_OFFSET_M = 0.01;
-
-function toPoint3d([x, y]: Point2d, heightM: number): Point3d {
-  return [x, heightM, y];
-}
 
 export function extrudeRoom(document: RoomDocument): ExtrudedRoom {
   const { vertices } = document.footprint;
@@ -75,13 +81,14 @@ export function extrudeRoom(document: RoomDocument): ExtrudedRoom {
 
   return {
     walls: extrudeWalls(document, vertices, heightM),
-    floor: extrudeFloorOrCeiling(document, vertices, "floor", 0, false),
+    // El piso mira hacia arriba y el techo hacia abajo: los dos, hacia dentro.
+    floor: extrudeFloorOrCeiling(document, vertices, "floor", 0, true),
     ceiling: extrudeFloorOrCeiling(
       document,
       vertices,
       "ceiling",
       heightM,
-      true,
+      false,
     ),
     obstacles: extrudeObstacles(document, heightM),
     openings: extrudeOpenings(document, vertices),
@@ -101,10 +108,10 @@ function extrudeWalls(
       selection: { kind: "surface", id: wall.id },
       materialId: wall.materialId,
       corners: [
-        toPoint3d(edge.from, 0),
-        toPoint3d(edge.to, 0),
-        toPoint3d(edge.to, heightM),
-        toPoint3d(edge.from, heightM),
+        toScenePlanPoint(edge.from, 0),
+        toScenePlanPoint(edge.to, 0),
+        toScenePlanPoint(edge.to, heightM),
+        toScenePlanPoint(edge.from, heightM),
       ],
     };
   });
@@ -133,7 +140,7 @@ function extrudeFloorOrCeiling(
     materialId: surface.materialId,
     triangles: fan.map(
       (triangle) =>
-        triangle.map((p) => toPoint3d(p, elevationM)) as [
+        triangle.map((p) => toScenePlanPoint(p, elevationM)) as [
           Point3d,
           Point3d,
           Point3d,
@@ -181,22 +188,22 @@ function openingPiece(
     (edge.to[1] - edge.from[1]) / lengthM,
   ];
   const [inX, inY] = inwardNormalM(edge, vertices);
-  const outward: Point2d = [-inX * OPENING_OFFSET_M, -inY * OPENING_OFFSET_M];
+  const inward: Point2d = [inX * OPENING_OFFSET_M, inY * OPENING_OFFSET_M];
 
   const [x, y, w, h] = opening.rect;
   const along = (distanceM: number): Point2d => [
-    edge.from[0] + dir[0] * distanceM + outward[0],
-    edge.from[1] + dir[1] * distanceM + outward[1],
+    edge.from[0] + dir[0] * distanceM + inward[0],
+    edge.from[1] + dir[1] * distanceM + inward[1],
   ];
 
   return {
     selection: { kind: "opening", id: opening.id },
     materialId: opening.materialId,
     corners: [
-      toPoint3d(along(x), y),
-      toPoint3d(along(x + w), y),
-      toPoint3d(along(x + w), y + h),
-      toPoint3d(along(x), y + h),
+      toScenePlanPoint(along(x), y),
+      toScenePlanPoint(along(x + w), y),
+      toScenePlanPoint(along(x + w), y + h),
+      toScenePlanPoint(along(x), y + h),
     ],
   };
 }

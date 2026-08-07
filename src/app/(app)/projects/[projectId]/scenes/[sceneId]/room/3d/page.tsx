@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Room3dEditor } from "@/features/room-3d/components/room-3d-editor";
 import { listRoomMaterialColors } from "@/features/room-3d/queries/list-room-material-colors";
+import { listSceneSpeakers } from "@/features/room-3d/queries/list-scene-speakers";
 import { listRoomMaterialOptions } from "@/features/room-editor/queries/list-room-material-options";
 import { parseRoom } from "@/features/room-editor/schemas/parse-room";
 import { validateRoom } from "@/features/room-editor/validation/validate-room";
@@ -28,9 +29,11 @@ export default async function SceneRoom3dPage({
   // No debería pasar nunca: saveRoom valida antes de persistir, igual que en la página del 2D.
   if (!parsedDocument.ok) notFound();
 
-  const [materialLibrary, materialColorsById] = await Promise.all([
+  const [materialLibrary, materialColorsById, speakers] = await Promise.all([
     listRoomMaterialOptions(),
     listRoomMaterialColors(),
+    // Del GRAFO, no del recinto: aquí las cajas se colocan, no se crean (§5.3).
+    listSceneSpeakers(scene.signalFlow),
   ]);
   const validation = validateRoom(parsedDocument.data, materialLibrary);
   const canManage = scene.role === "OWNER" || scene.role === "EDITOR";
@@ -58,6 +61,7 @@ export default async function SceneRoom3dPage({
           sceneStatus: scene.status,
           validation,
         }}
+        speakers={speakers}
         materialColorsById={materialColorsById}
       />
     </div>

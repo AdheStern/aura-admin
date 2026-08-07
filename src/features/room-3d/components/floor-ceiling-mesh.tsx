@@ -3,7 +3,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { DoubleSide } from "three";
+import { FrontSide } from "three";
 import { triangleFanGeometry } from "@/features/room-3d/components/geometry-builders";
 import type { FloorCeilingPiece } from "@/features/room-3d/model/extrude-room";
 import { encodeMeshName } from "@/features/room-3d/model/mesh-selection";
@@ -22,7 +22,7 @@ export function FloorCeilingMesh({
 
   return (
     <mesh name={encodeMeshName(piece.selection)} geometry={geometry}>
-      <meshStandardMaterial color={color} side={DoubleSide} />
+      <meshStandardMaterial color={color} side={FrontSide} />
     </mesh>
   );
 }

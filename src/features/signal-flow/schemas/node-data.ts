@@ -50,17 +50,29 @@ const paNodeDataSchema = z.strictObject({
   catalogItemId: catalogItemIdSchema,
 });
 
-// Los tres ajustes del parlante viajan tal cual al SimulationRequest (Sección 07): son datos de la
-// escena, no del catálogo — la misma caja se usa a distinto nivel en dos escenas del mismo proyecto.
-const speakerNodeDataSchema = z.strictObject({
-  kind: z.literal("speaker"),
-  catalogItemId: catalogItemIdSchema,
+/**
+ * Los tres ajustes del parlante que viajan tal cual al SimulationRequest (Sección 07): son datos de
+ * la escena, no del catálogo — la misma caja se usa a distinto nivel en dos escenas del proyecto.
+ *
+ * Con forma propia porque el editor 3D también los edita (Fase 4): el gizmo ajusta dónde apunta la
+ * caja y el mismo panel afina su nivel, así que la action que los parchea desde el recinto valida
+ * contra ESTE schema en vez de reescribir los rangos y arriesgarse a que diverjan.
+ */
+export const speakerAudioSchema = z.strictObject({
   /** Trim relativo aplicado sobre el nivel resuelto por la cadena eléctrica. */
   levelDb: z.number().min(-60).max(12).default(0),
   /** Inversión de polaridad (±180°): la suma compleja del motor la usa para detectar cancelaciones. */
   polarityInverted: z.boolean().default(false),
   /** Retardo de alineación. El máximo real lo limita el procesador; aquí solo se acota a lo sano. */
   delayMs: z.number().min(0).max(1000).default(0),
+});
+
+export type SpeakerAudio = z.infer<typeof speakerAudioSchema>;
+
+const speakerNodeDataSchema = z.strictObject({
+  kind: z.literal("speaker"),
+  catalogItemId: catalogItemIdSchema,
+  ...speakerAudioSchema.shape,
 });
 
 // No referencia catálogo ni tiene datasheet: es el punto de entrada al editor de recinto, no un

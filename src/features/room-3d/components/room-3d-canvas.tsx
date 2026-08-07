@@ -7,6 +7,7 @@
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { RoomMesh } from "@/features/room-3d/components/room-mesh";
+import { SpeakerRig } from "@/features/room-3d/components/speaker-rig";
 import { frameCamera } from "@/features/room-3d/model/frame-camera";
 import type { MaterialNrcById } from "@/features/room-3d/queries/list-room-material-colors";
 import { useRoomStore } from "@/features/room-editor/store/room-store-provider";
@@ -33,7 +34,11 @@ export function Room3dCanvas({
         intensity={0.9}
       />
       <RoomMesh materialColorsById={materialColorsById} />
+      <SpeakerRig />
+      {/* makeDefault es lo que deja que TransformControls congele el orbitar mientras se arrastra
+          un gizmo; sin él la cámara gira a la vez que la caja y no hay forma de colocar nada. */}
       <OrbitControls
+        makeDefault
         target={targetM}
         minDistance={radiusM * 0.2}
         maxDistance={radiusM * 4}

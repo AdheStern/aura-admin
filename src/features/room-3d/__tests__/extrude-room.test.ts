@@ -128,16 +128,63 @@ describe("extrudeRoom", () => {
 
     const [opening] = extrudeRoom(document).openings;
     expect(opening.selection).toEqual({ kind: "opening", id: "w1" });
-    // wall_0 va de (0,0) a (20,0): el eje x local es el x del documento, y offset hacia z<0 (afuera).
+    // wall_0 va de (0,0) a (20,0) y el interior queda hacia +y de la planta (+z en la escena): la
+    // abertura se separa HACIA DENTRO, que es desde donde se mira el recinto.
     const [bl, br, tr, tl] = opening.corners;
     expect(bl[0]).toBeCloseTo(3, 6);
     expect(br[0]).toBeCloseTo(5, 6);
     expect(bl[1]).toBeCloseTo(1.2, 6);
     expect(tl[1]).toBeCloseTo(2.7, 6);
-    expect(bl[2]).toBeLessThan(0);
-    expect(tr[2]).toBeLessThan(0);
+    expect(bl[2]).toBeGreaterThan(0);
+    expect(tr[2]).toBeGreaterThan(0);
+  });
+
+  // Con las normales hacia dentro el descarte de caras abre la sala; si alguna se invierte, ese
+  // muro o el piso desaparecen desde dentro y el editor deja de ser usable.
+  it("todas las normales apuntan al interior del recinto", () => {
+    const document = buildRoom(
+      { kind: "setFootprint", vertices: rectVertices(20, 12) },
+      { kind: "setHeight", heightM: 6 },
+    );
+    const { walls, floor, ceiling } = extrudeRoom(document);
+    const centre: Point3d = [10, 3, 6];
+
+    for (const wall of walls) {
+      const [a, b, c] = wall.corners;
+      expect(pointsToward(normalOf(a, b, c), a, centre)).toBe(true);
+    }
+    expect(normalOf(...floor.triangles[0])[1]).toBeGreaterThan(0);
+    expect(normalOf(...ceiling.triangles[0])[1]).toBeLessThan(0);
   });
 });
+
+function normalOf(a: Point3d, b: Point3d, c: Point3d): Point3d {
+  const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+  const v = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+  return [
+    u[1] * v[2] - u[2] * v[1],
+    u[2] * v[0] - u[0] * v[2],
+    u[0] * v[1] - u[1] * v[0],
+  ];
+}
+
+function pointsToward(
+  normal: Point3d,
+  from: Point3d,
+  target: Point3d,
+): boolean {
+  const toTarget = [
+    target[0] - from[0],
+    target[1] - from[1],
+    target[2] - from[2],
+  ];
+  return (
+    normal[0] * toTarget[0] +
+      normal[1] * toTarget[1] +
+      normal[2] * toTarget[2] >
+    0
+  );
+}
 
 function triangleAreaSum(
   triangles: readonly (readonly [Point3d, Point3d, Point3d])[],
