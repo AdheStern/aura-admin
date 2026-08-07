@@ -14,9 +14,12 @@ import {
   RotateCcwIcon,
   UndoIcon,
 } from "lucide-react";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Room3dEditorLink } from "@/features/room-3d/components/room-3d-editor-link";
 import { ImportExportControls } from "@/features/room-editor/components/import-export-controls";
+import { SaveStatusLabel } from "@/features/room-editor/components/save-status-label";
 import {
   redoLabel,
   undoLabel,
@@ -25,14 +28,13 @@ import {
   DEFAULT_CANVAS_VIEWPORT,
   zoomAtPoint,
 } from "@/features/room-editor/model/canvas-transform";
-import type { SaveStatus } from "@/features/room-editor/store/room-store";
 import { useRoomStore } from "@/features/room-editor/store/room-store-provider";
 import { SceneStatusBadge } from "@/features/scenes/components/scene-status-badge";
-import { cn } from "@/lib/utils";
 
 const ZOOM_BUTTON_STEP = 1.25;
 
 export function RoomToolbar() {
+  const params = useParams<{ projectId: string; sceneId: string }>();
   const canManage = useRoomStore((state) => state.canManage);
   const history = useRoomStore((state) => state.history);
   const undo = useRoomStore((state) => state.undo);
@@ -110,29 +112,12 @@ export function RoomToolbar() {
       <div className="ml-auto flex items-center gap-3">
         <SaveStatusLabel status={saveStatus} />
         <SceneStatusBadge status={sceneStatus} />
+        <Room3dEditorLink
+          projectId={params.projectId}
+          sceneId={params.sceneId}
+          enabled={sceneStatus === "ROOM_READY"}
+        />
       </div>
     </div>
-  );
-}
-
-const SAVE_STATUS_LABEL: Record<SaveStatus, string> = {
-  idle: "",
-  saving: "Guardando…",
-  saved: "Guardado",
-  error: "Error al guardar",
-};
-
-function SaveStatusLabel({ status }: { status: SaveStatus }) {
-  if (status === "idle") return null;
-
-  return (
-    <span
-      className={cn(
-        "text-xs",
-        status === "error" ? "text-destructive" : "text-muted-foreground",
-      )}
-    >
-      {SAVE_STATUS_LABEL[status]}
-    </span>
   );
 }

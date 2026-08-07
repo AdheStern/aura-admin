@@ -1,6 +1,6 @@
 // e2e/golden-path.spec.ts — el camino dorado de la Sección 11 del doc maestro: registro → proyecto
 // → escena → fuente→consola→PA→2 parlantes→simulación ("Flujo listo") → recinto rectangular con
-// zona de audiencia ("Recinto listo"). Se amplía cuando la Fase 4+ agregue 3D y resultados.
+// zona de audiencia ("Recinto listo") → editor 3D. Se amplía cuando la Fase 4+ agregue resultados.
 //
 // Las marcas/modelos de abajo vienen de prisma/seed/*.ts (sources.ts, consoles.ts, amplifiers.ts,
 // speakers.ts) — son curaduría real, no fixtures de test. Si el seed cambia esos nombres, este
@@ -169,6 +169,18 @@ test("fuente → consola → PA → 2 parlantes → simulación → recinto deja
 
     await page.reload({ waitUntil: "networkidle" });
     await expect(page.getByText("Recinto listo")).toBeVisible();
+  });
+
+  await test.step("generar el editor 3D desde el recinto listo", async () => {
+    // El botón solo se habilita en ROOM_READY (Sección 08): "Recinto listo" ya lo deja disponible.
+    await page.click('a:has-text("Generar 3D")');
+    await page.waitForURL("**/room/3d", { timeout: 30_000 });
+    await page.waitForSelector('a:has-text("Editor 2D")');
+
+    // El picking de superficies (raycaster de R3F sobre un <canvas> WebGL) no tiene DOM que
+    // consultar desde Playwright; esa cobertura queda en mesh-selection.test.ts (unitario). Aquí
+    // solo se confirma que la escena 3D se monta sin romper el camino dorado.
+    await expect(page.locator("canvas")).toBeVisible({ timeout: 10_000 });
   });
 });
 
