@@ -1,6 +1,6 @@
-// e2e/golden-path.spec.ts — el camino dorado de la Sección 11 del doc maestro, en la parte que ya
-// existe (Fase 2, flujo de señal): registro → proyecto → escena → fuente→consola→PA→2 parlantes→
-// simulación → "Flujo listo". Se amplía cuando la Fase 3+ agregue recinto, 3D y resultados.
+// e2e/golden-path.spec.ts — el camino dorado de la Sección 11 del doc maestro: registro → proyecto
+// → escena → fuente→consola→PA→2 parlantes→simulación ("Flujo listo") → recinto rectangular con
+// zona de audiencia ("Recinto listo"). Se amplía cuando la Fase 4+ agregue 3D y resultados.
 //
 // Las marcas/modelos de abajo vienen de prisma/seed/*.ts (sources.ts, consoles.ts, amplifiers.ts,
 // speakers.ts) — son curaduría real, no fixtures de test. Si el seed cambia esos nombres, este
@@ -13,7 +13,7 @@ const CONSOLE_MODEL = "Midas M AIR MR18";
 const AMPLIFIER_MODEL = "Crown XLS 1502";
 const SPEAKER_MODEL = "JBL PRX418S"; // pasiva (activePowered:false) — necesita el amplificador
 
-test("fuente → consola → PA → 2 parlantes → simulación deja la escena en Flujo listo", async ({
+test("fuente → consola → PA → 2 parlantes → simulación → recinto deja la escena en Recinto listo", async ({
   page,
 }) => {
   const stamp = Date.now();
@@ -140,6 +140,36 @@ test("fuente → consola → PA → 2 parlantes → simulación deja la escena e
     await expect(page.getByText("Flujo listo")).toBeVisible();
     await expect(page.locator(".react-flow__edge")).toHaveCount(6);
   });
+
+  await test.step("pasar al editor 2D y dibujar el recinto", async () => {
+    // El botón solo se habilita en FLOW_READY (Sección 08); en DRAFT no existiría este link.
+    await page.click('a:has-text("Editor 2D")');
+    await page.waitForURL("**/room", { timeout: 30_000 });
+    await page.waitForSelector("text=Recinto");
+
+    const canvas = page.locator("canvas").first();
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error("Lienzo del recinto sin bounding box");
+
+    // Fracciones del lienzo, no píxeles fijos: el tamaño real depende del viewport del navegador.
+    await pickTool(page, "Planta", "Rectángulo");
+    await dragOnCanvas(page, box, { x: 0.15, y: 0.15 }, { x: 0.65, y: 0.65 });
+
+    await pickTool(page, "Zona", "Zona de audiencia");
+    await dragOnCanvas(page, box, { x: 0.25, y: 0.25 }, { x: 0.5, y: 0.5 });
+  });
+
+  await test.step("autosave del recinto persiste el veredicto autoritativo", async () => {
+    // No hace falta material asignado para completar el recinto (MATERIAL_NOT_ASSIGNED es aviso,
+    // no error — Sección 4.2 del doc maestro): un footprint simple + una zona de audiencia bastan.
+    await expect(page.getByText("Recinto listo")).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(page.getByText("Guardado")).toBeVisible({ timeout: 5_000 });
+
+    await page.reload({ waitUntil: "networkidle" });
+    await expect(page.getByText("Recinto listo")).toBeVisible();
+  });
 });
 
 async function addNode(page: Page, label: string): Promise<void> {
@@ -172,6 +202,48 @@ async function nodeIdAt(page: Page, index: number): Promise<string> {
 
 function handle(page: Page, nodeId: string, portId: string): Locator {
   return page.locator(`[data-nodeid="${nodeId}"][data-handleid="${portId}"]`);
+}
+
+/** Elige una herramienta de la tira lateral. Las familias con más de una variante (Planta, Pilar,
+ *  Abertura, Zona) solo enseñan una en la tira y esconden el resto tras el flyout del triangulito
+ *  —ver tool-slot.tsx—, así que hay que abrirlo aunque la que se quiere sea la visible. */
+async function pickTool(
+  page: Page,
+  groupLabel: string,
+  toolLabel: string,
+): Promise<void> {
+  await page.click(`button[aria-label="Variantes de ${groupLabel}"]`);
+  await page
+    .locator('[role="menuitem"]:visible', { hasText: toolLabel })
+    .first()
+    .click();
+}
+
+/** Arrastre de esquina a esquina sobre el lienzo Konva del recinto, en fracciones del bounding box
+ *  (0–1): el rect-tool y el zone-tool leen del <canvas>, que no tiene handles de React Flow que
+ *  clicar — solo mousedown/move/up crudos sobre coordenadas de pantalla. */
+async function dragOnCanvas(
+  page: Page,
+  box: { x: number; y: number; width: number; height: number },
+  startFrac: { x: number; y: number },
+  endFrac: { x: number; y: number },
+): Promise<void> {
+  const start = {
+    x: box.x + box.width * startFrac.x,
+    y: box.y + box.height * startFrac.y,
+  };
+  const end = {
+    x: box.x + box.width * endFrac.x,
+    y: box.y + box.height * endFrac.y,
+  };
+
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move((start.x + end.x) / 2, (start.y + end.y) / 2, {
+    steps: 5,
+  });
+  await page.mouse.move(end.x, end.y, { steps: 5 });
+  await page.mouse.up();
 }
 
 /** Arrastre real de puntero: React Flow escucha pointerdown/move/up, no drag-and-drop HTML5. */
