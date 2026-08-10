@@ -8,17 +8,22 @@ import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { RoomMesh } from "@/features/room-3d/components/room-mesh";
 import { SpeakerRig } from "@/features/room-3d/components/speaker-rig";
+import { SplOverlayMesh } from "@/features/room-3d/components/spl-overlay-mesh";
 import { frameCamera } from "@/features/room-3d/model/frame-camera";
 import type { MaterialNrcById } from "@/features/room-3d/queries/list-room-material-colors";
 import { useRoomStore } from "@/features/room-editor/store/room-store-provider";
+import type { SplOverlay } from "@/features/simulation/queries/get-latest-spl-grid";
 
 /** Justo antes de la horizontal: evita que OrbitControls meta la cámara bajo el piso. */
 const MAX_POLAR_ANGLE = Math.PI / 2 - 0.02;
 
 export function Room3dCanvas({
   materialColorsById,
+  overlay,
 }: {
   materialColorsById: MaterialNrcById;
+  /** null cuando la escena no tiene ninguna simulación completada, o el mapa está apagado. */
+  overlay: SplOverlay | null;
 }) {
   const document = useRoomStore((state) => state.document);
   const { targetM, radiusM, positionM } = frameCamera(
@@ -34,6 +39,7 @@ export function Room3dCanvas({
         intensity={0.9}
       />
       <RoomMesh materialColorsById={materialColorsById} />
+      {overlay ? <SplOverlayMesh overlay={overlay} /> : null}
       <SpeakerRig />
       {/* makeDefault es lo que deja que TransformControls congele el orbitar mientras se arrastra
           un gizmo; sin él la cámara gira a la vez que la caja y no hay forma de colocar nada. */}

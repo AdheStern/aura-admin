@@ -10,6 +10,7 @@ import { listRoomMaterialOptions } from "@/features/room-editor/queries/list-roo
 import { parseRoom } from "@/features/room-editor/schemas/parse-room";
 import { validateRoom } from "@/features/room-editor/validation/validate-room";
 import { getSceneWithRole } from "@/features/scenes/queries";
+import { getLatestSplGrid } from "@/features/simulation/queries/get-latest-spl-grid";
 import { parseSceneSimulation } from "@/features/simulation/schemas/parse-scene-simulation";
 import { getActiveUser } from "@/lib/session";
 
@@ -31,12 +32,14 @@ export default async function SceneRoom3dPage({
   // No debería pasar nunca: las actions validan antes de persistir, igual que en la página del 2D.
   if (!parsedDocument.ok || !parsedSimulation.ok) notFound();
 
-  const [materialLibrary, materialColorsById, speakers] = await Promise.all([
-    listRoomMaterialOptions(),
-    listRoomMaterialColors(),
-    // Del GRAFO, no del recinto: aquí las cajas se colocan, no se crean (§5.3).
-    listSceneSpeakers(scene.signalFlow),
-  ]);
+  const [materialLibrary, materialColorsById, speakers, overlay] =
+    await Promise.all([
+      listRoomMaterialOptions(),
+      listRoomMaterialColors(),
+      // Del GRAFO, no del recinto: aquí las cajas se colocan, no se crean (§5.3).
+      listSceneSpeakers(scene.signalFlow),
+      getLatestSplGrid(scene.id),
+    ]);
   const validation = validateRoom(parsedDocument.data, materialLibrary);
   const canManage = scene.role === "OWNER" || scene.role === "EDITOR";
 
@@ -66,6 +69,7 @@ export default async function SceneRoom3dPage({
         speakers={speakers}
         simulation={parsedSimulation.data}
         materialColorsById={materialColorsById}
+        overlay={overlay}
       />
     </div>
   );

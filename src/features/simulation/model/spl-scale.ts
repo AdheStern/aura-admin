@@ -20,14 +20,24 @@ const ANCHORS_HEX = ["#0084d1", "#16a34a", "#f59e0b", "#dc2626"] as const;
 
 export type ScaleStop = { db: number; color: string };
 
-export function splColor(db: number): string {
+export type Rgb = [number, number, number];
+
+/** Canales 0–255. Es la forma que quiere una textura; el hex se deriva de aquí. */
+export function splColorRgb(db: number): Rgb {
   const t = clamp01((db - SPL_MIN_DB) / (SPL_MAX_DB - SPL_MIN_DB));
   const span = 1 / (ANCHORS.length - 1);
   const index = Math.min(Math.floor(t / span), ANCHORS.length - 2);
 
-  return toHex(
+  return toRgb(
     lerp(ANCHORS[index], ANCHORS[index + 1], (t - index * span) / span),
   );
+}
+
+export function splColor(db: number): string {
+  const channels = splColorRgb(db)
+    .map((channel) => channel.toString(16).padStart(2, "0"))
+    .join("");
+  return `#${channels}`;
 }
 
 /** Para la leyenda: un peldaño cada 5 dB, que es el salto que el oído nota. */
@@ -82,18 +92,16 @@ function hexToLab(hex: string): Lab {
   ];
 }
 
-function toHex([L, a, bb]: Lab): string {
+function toRgb([L, a, bb]: Lab): Rgb {
   const l = (L + 0.3963377774 * a + 0.2158037573 * bb) ** 3;
   const m = (L - 0.1055613458 * a - 0.0638541728 * bb) ** 3;
   const s = (L - 0.0894841775 * a - 1.291485548 * bb) ** 3;
 
-  const rgb = [
-    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
-    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
-    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+  return [
+    toSrgb(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
+    toSrgb(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+    toSrgb(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s),
   ];
-
-  return `#${rgb.map((c) => toSrgb(c).toString(16).padStart(2, "0")).join("")}`;
 }
 
 const ANCHORS: Lab[] = ANCHORS_HEX.map(hexToLab);

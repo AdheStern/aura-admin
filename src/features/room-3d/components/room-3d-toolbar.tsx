@@ -4,7 +4,7 @@
 
 "use client";
 
-import { RedoIcon, UndoIcon } from "lucide-react";
+import { RedoIcon, ThermometerIcon, UndoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ImportExportControls } from "@/features/room-editor/components/import-export-controls";
@@ -16,7 +16,15 @@ import {
 import { useRoomStore } from "@/features/room-editor/store/room-store-provider";
 import { SceneStatusBadge } from "@/features/scenes/components/scene-status-badge";
 
-export function Room3dToolbar() {
+export function Room3dToolbar({
+  hasOverlay,
+  showMap,
+  onToggleMap,
+}: {
+  hasOverlay: boolean;
+  showMap: boolean;
+  onToggleMap: () => void;
+}) {
   const canManage = useRoomStore((state) => state.canManage);
   const history = useRoomStore((state) => state.history);
   const undo = useRoomStore((state) => state.undo);
@@ -57,6 +65,23 @@ export function Room3dToolbar() {
       ) : null}
 
       <ImportExportControls />
+
+      {/* Solo cuando hay algo que enseñar: un interruptor que no enciende nada haría pensar que el
+          mapa está roto en vez de que la escena aún no se ha simulado. */}
+      {hasOverlay ? (
+        <>
+          <Separator orientation="vertical" className="h-6" />
+          <Button
+            variant={showMap ? "secondary" : "outline"}
+            size="sm"
+            aria-pressed={showMap}
+            onClick={onToggleMap}
+          >
+            <ThermometerIcon />
+            Cobertura
+          </Button>
+        </>
+      ) : null}
 
       <div className="ml-auto flex items-center gap-3">
         <SaveStatusLabel status={saveStatus} />
