@@ -1,0 +1,37 @@
+[
+  {
+    "name": "json simple",
+    "body": "{\"progress\":45}",
+    "timestamp": "1754838000",
+    "secret": "dev-secret",
+    "signature": "1b1f77fd0f711451cf35e5b2f6c710eb0ad449d9c9ad54e535dd1e1c862db5f7"
+  },
+  {
+    "name": "claves en orden no alfabetico",
+    "body": "{\"b\":1,\"a\":2}",
+    "timestamp": "1700000000",
+    "secret": "otro-secreto",
+    "signature": "f44cfd945355f50c697cd98003149f5ab51d6bfa5943b9912fe30442114980f5"
+  },
+  {
+    "name": "body vacio",
+    "body": "",
+    "timestamp": "1",
+    "secret": "s",
+    "signature": "7845f55296e832a0ffeb7b3aa8d5dc4dc995a2d0de16b76379cff0f81f072e1a"
+  },
+  {
+    "name": "utf-8 fuera de ascii",
+    "body": "{\"nombre\":\"Salón acústico ñ\"}",
+    "timestamp": "1754838123",
+    "secret": "clave-ñ",
+    "signature": "e61893143a2fcce7febee601618d90e3cf775a5d67f51234f55e7c846faabc6e"
+  },
+  {
+    "name": "secreto largo",
+    "body": "{\"jobId\":\"job_x\"}",
+    "timestamp": "1754999999",
+    "secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "signature": "8d7003f7cf4909606b1c4e81822dac97f400d0a2d75cb4bd499139ddcbe4f3fc"
+  }
+]

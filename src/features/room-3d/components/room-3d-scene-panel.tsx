@@ -17,6 +17,8 @@ import { SimulationConfigPanel } from "@/features/simulation/components/simulati
 import { canSimulate } from "@/features/simulation/model/can-simulate";
 
 export function Room3dScenePanel() {
+  const sceneId = useRoomStore((state) => state.sceneId);
+  const canManage = useRoomStore((state) => state.canManage);
   const document = useRoomStore((state) => state.document);
   const sceneStatus = useRoomStore((state) => state.sceneStatus);
   const speakerCount = useSpeakerStore((state) => state.speakers.length);
@@ -28,7 +30,11 @@ export function Room3dScenePanel() {
       <IdlePanel />
       <EnvironmentPanel />
       <SimulationConfigPanel />
-      <SimulateButton blockers={readiness.blockers} />
+      <SimulateButton
+        sceneId={sceneId}
+        canManage={canManage}
+        blockers={readiness.blockers}
+      />
     </>
   );
 }
