@@ -5,6 +5,8 @@
 
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { LatestJob } from "@/features/simulation/queries/get-latest-job";
 
 const LABELS: Record<string, string> = {
@@ -39,6 +41,26 @@ export function JobStatus({ job }: { job: LatestJob }) {
           {job.error.code}: {job.error.message}
         </p>
       ) : null}
+
+      {job.status === "COMPLETED" ? (
+        <ResultsLink simulationId={job.simulationId} />
+      ) : null}
     </div>
+  );
+}
+
+/** La ruta de resultados es hermana de la del editor, así que se deriva de dónde estamos en vez de
+ *  arrastrar el projectId por props hasta aquí. */
+function ResultsLink({ simulationId }: { simulationId: string }) {
+  const pathname = usePathname();
+  const href = pathname.replace(/\/room\/3d$/, `/results/${simulationId}`);
+
+  return (
+    <Link
+      href={href}
+      className="text-xs font-medium underline underline-offset-4"
+    >
+      Ver resultados
+    </Link>
   );
 }

@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "contracts:build": "tsx scripts/generate-json-schemas.ts",
     "db:seed": "prisma db seed",
     "test": "vitest run",
