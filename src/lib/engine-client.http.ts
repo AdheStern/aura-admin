@@ -1,10 +1,13 @@
-// src/lib/engine-client.http.ts — cliente real del motor: POST /v1/simulations firmado con HMAC.
-// Solo encola. El resultado y el progreso vuelven por /api/internal/jobs/:jobId (ver el README de
-// aura-engine, sección "Flujo completo de un job").
+// src/lib/engine-client.http.ts — cliente real del motor: encolar y cancelar, firmados con HMAC.
+// El resultado y el progreso vuelven por /api/internal/jobs/:jobId (ver el README de aura-engine,
+// sección "Flujo completo de un job"); cancelar es el único que responde algo útil en el momento.
 
+import { z } from "zod";
 import { engineErrorEnvelopeSchema, type SimulationRequest } from "@/contracts";
 import {
+  type CancelOutcome,
   type EngineClient,
+  type EngineJobStatus,
   EngineSubmitError,
 } from "@/lib/engine-client.types";
 import {
@@ -13,49 +16,80 @@ import {
   TIMESTAMP_HEADER,
 } from "@/lib/engine-signature";
 
+const jobStateSchema = z.looseObject({
+  status: z.enum(["QUEUED", "RUNNING", "COMPLETED", "FAILED", "CANCELLED"]),
+});
+
 export function createHttpEngineClient(
   baseUrl: string,
   secret: string,
 ): EngineClient {
+  const endpoint = (path: string) => `${baseUrl.replace(/\/$/, "")}${path}`;
+
   return {
     async submitSimulation(request: SimulationRequest) {
       // Se serializa UNA vez y se firma sobre estos mismos bytes. Reserializar para firmar
       // cambiaría el orden de claves y la firma no cuadraría nunca.
-      const body = JSON.stringify(request);
-      const { timestamp, signature } = signEngineBody(body, secret);
+      const url = endpoint("/v1/simulations");
+      const response = await send(url, JSON.stringify(request), secret);
 
-      const response = await post(baseUrl, body, {
-        "Content-Type": "application/json",
-        [TIMESTAMP_HEADER]: timestamp,
-        [SIGNATURE_HEADER]: signature,
-      });
-
+      if (!response) {
+        throw new EngineSubmitError(
+          "ENGINE_UNREACHABLE",
+          `no se pudo hablar con el motor en ${url}`,
+        );
+      }
       if (!response.ok) {
         throw await toSubmitError(response);
       }
     },
+
+    async cancelSimulation(jobId: string): Promise<CancelOutcome> {
+      // Cuerpo vacío: el motor lo descarta, pero la ruta va firmada como todas las demás.
+      const url = endpoint(
+        `/v1/simulations/${encodeURIComponent(jobId)}/cancel`,
+      );
+      const response = await send(url, "", secret);
+      if (!response) return { ok: false, reason: "unreachable" };
+
+      if (!response.ok) {
+        // Un 400 es "este motor no conoce el job", y entonces seguro que no lo está calculando.
+        // Cualquier otro fallo (401 por secreto distinto, 5xx) NO autoriza a suponer eso: darlo por
+        // cancelado dejaría a la app diciendo que paró algo que sigue corriendo.
+        return {
+          ok: false,
+          reason: response.status === 400 ? "unknown_job" : "unreachable",
+        };
+      }
+
+      const state = jobStateSchema.safeParse(await response.json());
+      return state.success
+        ? { ok: true, status: state.data.status as EngineJobStatus }
+        : { ok: false, reason: "unreachable" };
+    },
   };
 }
 
-async function post(
-  baseUrl: string,
+/** null = no se pudo hablar con el motor. Un HTTP de error sí devuelve Response. */
+async function send(
+  url: string,
   body: string,
-  headers: Record<string, string>,
-): Promise<Response> {
-  const url = `${baseUrl.replace(/\/$/, "")}/v1/simulations`;
+  secret: string,
+): Promise<Response | null> {
+  const { timestamp, signature } = signEngineBody(body, secret);
   try {
     return await fetch(url, {
       method: "POST",
       body,
-      headers,
+      headers: {
+        "Content-Type": "application/json",
+        [TIMESTAMP_HEADER]: timestamp,
+        [SIGNATURE_HEADER]: signature,
+      },
       cache: "no-store",
     });
-  } catch (cause) {
-    throw new EngineSubmitError(
-      "ENGINE_UNREACHABLE",
-      `no se pudo hablar con el motor en ${url}`,
-      { cause: String(cause) },
-    );
+  } catch {
+    return null;
   }
 }
 

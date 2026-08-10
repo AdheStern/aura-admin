@@ -51,10 +51,26 @@ export function createLoopbackEngineClient(
       const jobId = request.jobId;
       // Sin await, igual que el 202 del motor: encolar devuelve enseguida y el trabajo sigue
       // aparte. Los fallos se tragan porque un motor tampoco puede avisar a quien ya respondió.
+      running.add(jobId);
       void deliver(mode, jobId, secret, appUrl, stepDelayMs).catch(() => {});
+    },
+
+    async cancelSimulation(jobId) {
+      if (!running.has(jobId)) return { ok: false, reason: "unknown_job" };
+
+      // Cooperativa como la del motor: se marca la intención y el bucle se detiene en su siguiente
+      // paso, así que el estado que se devuelve todavía es RUNNING. Decir CANCELLED aquí sería
+      // afirmar como hecho algo que aún no ha pasado.
+      cancelled.add(jobId);
+      return { ok: true, status: "RUNNING" };
     },
   };
 }
+
+// Estado del PROCESO, igual que el store del motor: se pierde al reiniciar, y por eso un job que
+// no está aquí se responde como desconocido en vez de inventarle un estado.
+const running = new Set<string>();
+const cancelled = new Set<string>();
 
 async function deliver(
   mode: "mock" | "mock-fail",
@@ -65,14 +81,24 @@ async function deliver(
 ): Promise<void> {
   const base = `${appUrl.replace(/\/$/, "")}/api/internal/jobs/${jobId}`;
 
-  for (const progress of PROGRESS_STEPS) {
-    await sleep(stepDelayMs);
-    await send(`${base}/progress`, JSON.stringify({ progress }), secret);
-  }
+  try {
+    for (const progress of PROGRESS_STEPS) {
+      await sleep(stepDelayMs);
+      // Cada latido es un punto de cancelación, como en el motor (jobs.py).
+      if (cancelled.has(jobId)) return;
+      await send(`${base}/progress`, JSON.stringify({ progress }), secret);
+    }
 
-  const [last] = mockJobUpdates(mode).slice(-1);
-  const body = last.result ? last.result : { error: last.error };
-  await send(base, JSON.stringify(body), secret);
+    const [last] = mockJobUpdates(mode).slice(-1);
+    const body = last.result ? last.result : { error: last.error };
+    // Una cancelación NO entrega callback: la app ya sabe que canceló porque lo pidió.
+    if (!cancelled.has(jobId)) {
+      await send(base, JSON.stringify(body), secret);
+    }
+  } finally {
+    running.delete(jobId);
+    cancelled.delete(jobId);
+  }
 }
 
 async function send(url: string, body: string, secret: string): Promise<void> {

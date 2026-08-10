@@ -53,6 +53,16 @@ export class EngineSubmitError extends Error {
   }
 }
 
+/**
+ * Qué contestó el motor al pedirle cancelar.
+ *
+ * `unknown_job` no es un error: el store del motor vive en el proceso y no sobrevive a un reinicio
+ * (ADR-01), así que un job que él ya no conoce tampoco lo está calculando.
+ */
+export type CancelOutcome =
+  | { ok: true; status: EngineJobStatus }
+  | { ok: false; reason: "unknown_job" | "unreachable" };
+
 export interface EngineClient {
   /**
    * Encola la simulación. Vuelve cuando el motor la aceptó con un 202; lanza EngineSubmitError si
@@ -63,4 +73,14 @@ export interface EngineClient {
    * un GEOMETRY_INVALID que solo se descubre al construir la sala llega después, por callback.
    */
   submitSimulation(request: SimulationRequest): Promise<void>;
+
+  /**
+   * Pide la cancelación y devuelve el estado del motor EN ESE MOMENTO, que puede seguir siendo
+   * RUNNING: la cancelación es cooperativa y el job se detiene en su siguiente reporte de progreso.
+   *
+   * Cancelar NO genera callback — la app ya sabe que canceló porque lo pidió—, así que quien llama
+   * es responsable de escribir el estado final. Por eso hace falta el estado devuelto: si el motor
+   * dice que ya terminó, no hay nada que cancelar y el resultado llegará (o llegó) por su camino.
+   */
+  cancelSimulation(jobId: string): Promise<CancelOutcome>;
 }

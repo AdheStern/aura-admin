@@ -7,6 +7,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { CancelButton } from "@/features/simulation/components/cancel-button";
 import type { LatestJob } from "@/features/simulation/queries/get-latest-job";
 
 const LABELS: Record<string, string> = {
@@ -17,7 +18,17 @@ const LABELS: Record<string, string> = {
   CANCELLED: "Simulación cancelada",
 };
 
-export function JobStatus({ job }: { job: LatestJob }) {
+export function JobStatus({
+  job,
+  sceneId,
+  canManage,
+  onCancelled,
+}: {
+  job: LatestJob;
+  sceneId: string;
+  canManage: boolean;
+  onCancelled: () => void;
+}) {
   const isLive = job.status === "QUEUED" || job.status === "RUNNING";
 
   return (
@@ -34,6 +45,10 @@ export function JobStatus({ job }: { job: LatestJob }) {
             style={{ width: `${job.progress}%` }}
           />
         </div>
+      ) : null}
+
+      {isLive && canManage ? (
+        <CancelButton sceneId={sceneId} onCancelled={onCancelled} />
       ) : null}
 
       {job.error ? (

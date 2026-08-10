@@ -43,17 +43,28 @@ export function SimulateButton({
   const isReady = blockers.length === 0;
 
   return (
-    <form action={action} className="flex flex-col gap-2">
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={!isReady || !canManage || isPending || isLive}
-        title={isReady ? undefined : "Faltan cosas por resolver"}
-      >
-        {isLive ? "Simulando…" : "Simular"}
-      </Button>
+    // El formulario envuelve SOLO el botón: JobStatus trae dentro el de cancelar, y un form dentro
+    // de otro no es HTML válido.
+    <div className="flex flex-col gap-2">
+      <form action={action}>
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={!isReady || !canManage || isPending || isLive}
+          title={isReady ? undefined : "Faltan cosas por resolver"}
+        >
+          {isLive ? "Simulando…" : "Simular"}
+        </Button>
+      </form>
 
-      {job ? <JobStatus job={job} /> : null}
+      {job ? (
+        <JobStatus
+          job={job}
+          sceneId={sceneId}
+          canManage={canManage}
+          onCancelled={refresh}
+        />
+      ) : null}
 
       {state.error ? (
         <p className="text-xs text-destructive">{state.error}</p>
@@ -68,6 +79,6 @@ export function SimulateButton({
           ))}
         </ul>
       )}
-    </form>
+    </div>
   );
 }
