@@ -9,6 +9,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { SimulationRecommendation } from "@/contracts";
+import { ApplyOrientationButton } from "@/features/simulation/components/results/apply-orientation-button";
+import { isRepositionAction } from "@/features/simulation/schemas/reposition-action";
 
 const ACTIONS: Record<string, string> = {
   reposition_speaker: "Reorientar caja",
@@ -22,8 +24,13 @@ const ACTIONS: Record<string, string> = {
 
 export function RecommendationCard({
   recommendation,
+  simulationId,
+  canApply,
 }: {
   recommendation: SimulationRecommendation;
+  simulationId: string;
+  /** Aplicar escribe en el recinto, así que es cosa de OWNER/EDITOR. */
+  canApply: boolean;
 }) {
   const { action, evidence, text, priority, rule } = recommendation;
 
@@ -45,6 +52,16 @@ export function RecommendationCard({
             <p className="mb-1 text-xs font-medium">Evidencia</p>
             <KeyValues values={evidence} />
           </div>
+        ) : null}
+
+        {/* Solo la propuesta de reorientación es ejecutable: las demás (tratar reflexiones, EQ de
+            sala) describen obra o ajuste fuera de la app, y un botón que no hace nada sería peor
+            que ninguno. */}
+        {canApply && isRepositionAction(action) ? (
+          <ApplyOrientationButton
+            simulationId={simulationId}
+            recommendationId={recommendation.id}
+          />
         ) : null}
       </CardContent>
     </Card>

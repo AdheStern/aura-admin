@@ -229,10 +229,15 @@ describe("catálogo y cotas", () => {
 });
 
 describe("estado de la escena", () => {
-  it("solo promueve a ROOM_READY desde FLOW_READY", () => {
+  it("promueve a ROOM_READY desde FLOW_READY, nunca desde DRAFT", () => {
     expect(nextSceneStatusFromRoom("FLOW_READY", true)).toBe("ROOM_READY");
     expect(nextSceneStatusFromRoom("DRAFT", true)).toBe("DRAFT");
-    expect(nextSceneStatusFromRoom("SIMULATED", true)).toBe("SIMULATED");
+  });
+
+  // La §08 dibuja SIMULATED → ROOM_READY: tocar la geometría invalida los resultados vigentes.
+  // Los resultados no se borran — la vista los marca desactualizados comparando requestHash.
+  it("una escena simulada vuelve a ROOM_READY al cambiar el recinto", () => {
+    expect(nextSceneStatusFromRoom("SIMULATED", true)).toBe("ROOM_READY");
   });
 
   it("degrada a FLOW_READY —no a DRAFT— cuando la geometría se rompe", () => {

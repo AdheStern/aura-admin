@@ -21,10 +21,14 @@ export function ResultsView({
   view,
   document,
   resolutionM,
+  simulationId,
+  canApply,
 }: {
   view: SimulationView;
   document: RoomDocument | null;
   resolutionM: number;
+  simulationId: string;
+  canApply: boolean;
 }) {
   const { bands, splGrid, recommendations } = view;
   const splValues = splGrid?.valuesDbA;
@@ -43,6 +47,8 @@ export function ResultsView({
               <RecommendationCard
                 key={recommendation.id}
                 recommendation={recommendation}
+                simulationId={simulationId}
+                canApply={canApply}
               />
             ))}
           </div>

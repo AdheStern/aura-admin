@@ -11,14 +11,20 @@ import type { SceneStatus } from "@/features/scenes/schemas";
  * sistema roto deja la escena en DRAFT, que es donde el validador del flujo la dejó. Al revés,
  * romper la planta cae a FLOW_READY y no a DRAFT — el sistema sigue siendo válido y hacerle
  * revalidar el grafo al usuario por haber movido un vértice sería mentirle sobre qué está mal.
- * Los resultados ya calculados no se borran: quedan marcados como desactualizados.
+ *
+ * SIMULATED también baja a ROOM_READY: es la arista que la §08 dibuja para "cambios en 3D invalidan
+ * resultados vigentes". Solo llega aquí un cambio de verdad — el autosave no dispara por montar el
+ * editor. Los resultados NO se borran: siguen siendo ciertos para el recinto con el que se
+ * calcularon, y la vista de resultados los marca como desactualizados comparando `requestHash`.
  */
 export function nextSceneStatusFromRoom(
   current: SceneStatus,
   isRoomComplete: boolean,
 ): SceneStatus {
   if (isRoomComplete) {
-    return current === "FLOW_READY" ? "ROOM_READY" : current;
+    return current === "FLOW_READY" || current === "SIMULATED"
+      ? "ROOM_READY"
+      : current;
   }
   return current === "DRAFT" ? "DRAFT" : "FLOW_READY";
 }

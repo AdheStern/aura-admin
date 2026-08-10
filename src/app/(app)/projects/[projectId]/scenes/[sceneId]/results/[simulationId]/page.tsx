@@ -89,6 +89,8 @@ async function Results({
         view={detail.view}
         document={detail.document}
         resolutionM={detail.resolutionM}
+        simulationId={detail.simulationId}
+        canApply={scene?.role === "OWNER" || scene?.role === "EDITOR"}
       />
     </>
   );
