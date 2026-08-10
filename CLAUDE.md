@@ -24,3 +24,6 @@ pnpm contracts:build (regenera src/contracts/*.schema.json desde los zod)
 ## Contexto rápido
 Estados de escena: DRAFT→FLOW_READY→ROOM_READY→SIMULATED. El motor vive en el repo
 aura-engine (no lo toques desde aquí). ENGINE_MODE=mock devuelve canon-01.expected.json.
+
+Lo que la app necesita saber del motor —contrato, firma HMAC, callbacks, errores— está en
+`../aura-engine/README.md`. Léelo ahí: una copia en este repo deriva y ya pasó una vez.
