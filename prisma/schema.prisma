@@ -31,6 +31,7 @@ model User {
   projects       Project[]
   projectMembers ProjectMember[]
   simulations    Simulation[]
+  settings       UserSettings?
 
   status       String? @default("ACTIVE")
   departmentId String?
@@ -256,6 +257,25 @@ model SimResult {
 
   @@index([simulationId, kind])
   @@map("sim_result")
+}
+
+// ------- Dominio AURA: preferencias de usuario (Sección 4.1, Fase 6) -------
+// La API key del LLM se guarda CIFRADA con AES-256-GCM (ADR-08) y no vuelve al cliente nunca más
+// después de guardarse: la UI solo sabe si hay una y sus últimos caracteres. Viaja descifrada a un
+// único sitio, el payload de la simulación que la necesita, y ni siquiera se persiste ahí.
+//
+// units y defaultMode los declara el doc; todavía no los lee nadie (v1 es métrico y el modo vive
+// por escena). Están para que el modelo sea el de la §4.1 y no una versión recortada que luego
+// nadie recuerde completar.
+model UserSettings {
+  userId          String  @id
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  llmProvider     String? // anthropic | google | deepseek
+  llmApiKeyCipher String? // base64(iv ‖ tag ‖ cifrado); nunca sale al cliente
+  units           String  @default("metric")
+  defaultMode     String  @default("simple")
+
+  @@map("user_settings")
 }
 
 // ------- Dominio AURA: catálogos (Sección 4.2, Fase 1) -------

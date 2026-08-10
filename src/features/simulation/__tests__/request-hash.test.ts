@@ -15,6 +15,21 @@ describe("requestHash", () => {
     expect(requestHash(other)).toBe(requestHash(CANON));
   });
 
+  // Si esto cambiara, la clave del usuario acabaría dentro de una huella que se guarda, y además
+  // rotarla marcaría como desactualizados resultados que describen la misma sala.
+  it("no cambia con el bloque llm, que lleva la API key en claro", () => {
+    const withKey = {
+      ...CANON,
+      llm: {
+        provider: "anthropic" as const,
+        apiKey: "sk-secreta",
+        enabled: true,
+      },
+    };
+
+    expect(requestHash(withKey)).toBe(requestHash(CANON));
+  });
+
   it("cambia si cambia la física", () => {
     const warmer = {
       ...CANON,

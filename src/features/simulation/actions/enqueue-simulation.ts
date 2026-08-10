@@ -13,6 +13,7 @@ import { randomUUID } from "node:crypto";
 import { requireProjectRole } from "@/features/projects/queries/require-project-role";
 import { getSceneWithRole } from "@/features/scenes/queries";
 import { sceneIdSchema } from "@/features/scenes/schemas";
+import { resolveLlmConfig } from "@/features/settings/queries/resolve-llm-config";
 import { requestHash } from "@/features/simulation/model/request-hash";
 import { compileSceneRequest } from "@/features/simulation/queries/compile-scene-request";
 import { db } from "@/lib/db";
@@ -65,7 +66,12 @@ export async function enqueueSimulation(
   });
 
   try {
-    await getEngineClient().submitSimulation(compiled.request);
+    // La clave se añade AQUÍ y no antes: lo que se guardó arriba —`request` y `requestHash`— no la
+    // lleva, porque `request` es texto plano en la BD y el hash se compara con la escena de hoy
+    // para saber si los resultados están desactualizados. Con la clave dentro, guardaríamos un
+    // secreto en claro y cambiarla invalidaría resultados que siguen siendo buenos.
+    const llm = await resolveLlmConfig(activeUser.data.id);
+    await getEngineClient().submitSimulation({ ...compiled.request, llm });
   } catch (error) {
     await markSubmitFailed(ids.jobId, error);
     return invalid(

@@ -3,6 +3,12 @@
 // jobId y simulationId quedan FUERA: cambian en cada corrida, y con ellos dentro el hash sería
 // distinto siempre y nunca deduplicaría nada, que es justo su único propósito.
 //
+// `llm` también queda fuera, y por dos razones que van más allá de la deduplicación: lleva la API
+// key del usuario en claro, y este hash se compara con la escena de hoy para decidir si unos
+// resultados están desactualizados — con la clave dentro, rotarla marcaría como viejos resultados
+// que siguen describiendo la misma sala. Se descarta aquí y no solo en quien llama para que siga
+// siendo cierto el día que alguien pase un request ya completo.
+//
 // Las claves se ordenan antes de serializar. Lo contrario haría depender la huella del orden en
 // que el compilador rellenó los objetos, y dos payloads idénticos darían hashes distintos.
 
@@ -10,7 +16,12 @@ import { createHash } from "node:crypto";
 import type { SimulationRequest } from "@/contracts";
 
 export function requestHash(request: SimulationRequest): string {
-  const { jobId: _jobId, simulationId: _simulationId, ...identity } = request;
+  const {
+    jobId: _jobId,
+    simulationId: _simulationId,
+    llm: _llm,
+    ...identity
+  } = request;
   return createHash("sha256").update(canonicalJson(identity)).digest("hex");
 }
 

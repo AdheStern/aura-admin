@@ -1,7 +1,12 @@
 // src/components/app-sidebar.tsx — nav del área autenticada. "Catálogos" solo es visible para
 // SUPER_ADMIN: el resto de /catalogs/* devuelve 404 para cualquier otro rol (ver catalogs/layout.tsx).
 
-import { ChevronRightIcon, FolderKanbanIcon, PackageIcon } from "lucide-react";
+import {
+  ChevronRightIcon,
+  FolderKanbanIcon,
+  PackageIcon,
+  SettingsIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { NavUser } from "@/components/nav-user";
 import {
@@ -82,6 +87,16 @@ export function AppSidebar({ activeUser }: { activeUser: ActiveUser }) {
                 </SidebarMenuItem>
               </Collapsible>
             ) : null}
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                render={<Link href="/settings" />}
+                tooltip="Ajustes"
+              >
+                <SettingsIcon />
+                <span>Ajustes</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
