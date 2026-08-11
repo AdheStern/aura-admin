@@ -20,6 +20,8 @@ const ACTIONS: Record<string, string> = {
   parametric_eq: "EQ paramétrica",
   delay_alignment: "Alinear delays",
   review_polarity: "Revisar polaridad",
+  add_absorption: "Añadir absorción",
+  reduce_absorption: "Quitar absorción",
 };
 
 export function RecommendationCard({

@@ -41,9 +41,17 @@ export const simulationConfigSchema = z.strictObject({
    *
    * `null` significa "no evalúes RtTargetRule": una escena sin objetivo declarado no debe recibir
    * una recomendación de tratamiento contra un rango que nadie eligió.
+   *
+   * El `min <= max` NO viaja en el JSON Schema —no hay forma de expresarlo— así que lo comprueban
+   * los dos lados por su cuenta: aquí para que el error salga en el formulario, y el motor otra vez
+   * en su frontera. Sin esto un rango invertido pondría a toda banda a la vez por encima del máximo
+   * y por debajo del mínimo. `min == max` sí vale: es el objetivo puntual del cálculo inverso.
    */
   rtTargetS: z
     .tuple([z.number().positive(), z.number().positive()])
+    .refine(([min, max]) => min <= max, {
+      message: "El objetivo de RT60 es un rango [mín, máx] y llegó invertido",
+    })
     .nullable()
     .default(null),
 });

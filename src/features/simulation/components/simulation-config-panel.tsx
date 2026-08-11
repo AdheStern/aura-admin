@@ -9,6 +9,7 @@
 
 import { Button } from "@/components/ui/button";
 import { AdvancedConfigFields } from "@/features/simulation/components/advanced-config-fields";
+import { RtTargetFields } from "@/features/simulation/components/rt-target-fields";
 import { SIMPLE_CONFIG } from "@/features/simulation/schemas/scene-simulation";
 import { useSimulationStore } from "@/features/simulation/store/simulation-store";
 
@@ -29,7 +30,11 @@ export function SimulationConfigPanel() {
             variant={config.mode === "simple" ? "default" : "outline"}
             size="sm"
             className="flex-1"
-            onClick={() => setConfig(SIMPLE_CONFIG)}
+            // rtTargetS sobrevive al reset: describe la SALA, no cómo se calcula, y perderlo al
+            // cambiar de modo descartaría en silencio algo que el usuario eligió aparte.
+            onClick={() =>
+              setConfig({ ...SIMPLE_CONFIG, rtTargetS: config.rtTargetS })
+            }
           >
             Simple
           </Button>
@@ -52,6 +57,10 @@ export function SimulationConfigPanel() {
       ) : (
         <AdvancedConfigFields />
       )}
+
+      {/* Fuera del if: el objetivo describe la SALA, no cómo se calcula, y quien usa el modo
+          simple es quien más partido le saca a que le digan cuánto absorbente le falta. */}
+      <RtTargetFields />
     </div>
   );
 }
