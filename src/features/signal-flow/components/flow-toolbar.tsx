@@ -6,7 +6,9 @@
 "use client";
 
 import { PlusIcon } from "lucide-react";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { RoomEditorLink } from "@/features/room-editor/components/room-editor-link";
 import { SceneStatusBadge } from "@/features/scenes/components/scene-status-badge";
 import { FLOW_NODE_DEFINITIONS } from "@/features/signal-flow/model/node-registry";
 import type { FlowNodeKind } from "@/features/signal-flow/schemas/node-kinds";
@@ -24,6 +26,7 @@ const ADD_ORDER: FlowNodeKind[] = [
 ];
 
 export function FlowToolbar() {
+  const params = useParams<{ projectId: string; sceneId: string }>();
   const nodes = useFlowStore((state) => state.nodes);
   const addNode = useFlowStore((state) => state.addNode);
   const canManage = useFlowStore((state) => state.canManage);
@@ -67,6 +70,11 @@ export function FlowToolbar() {
       <div className="ml-auto flex items-center gap-3">
         <SaveStatusLabel status={saveStatus} />
         <SceneStatusBadge status={sceneStatus} />
+        <RoomEditorLink
+          projectId={params.projectId}
+          sceneId={params.sceneId}
+          enabled={sceneStatus !== "DRAFT"}
+        />
       </div>
     </div>
   );

@@ -18,7 +18,12 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Todo excepto: landing, login/registro, el handler de Better Auth, y assets/Next internos.
+  //
+  // api/internal queda fuera porque ahí no hay cookie que mirar: son los callbacks del motor, que
+  // se autorizan con HMAC (src/lib/engine-signature.ts). Sin esta excepción el motor recibiría un
+  // 307 hacia /login, que su _deliver no cuenta ni como éxito ni como 4xx: gastaría sus tres
+  // intentos y marcaría FAILED todos los jobs.
   matcher: [
-    "/((?!login|register|api/auth|_next/static|_next/image|favicon.ico|$).*)",
+    "/((?!login|register|api/auth|api/internal|_next/static|_next/image|favicon.ico|$).*)",
   ],
 };

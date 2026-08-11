@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1",
+  "units": "m",
+  "footprint": {
+    "vertices": [[0, 0], [12, 0], [12, 6], [7, 6], [7, 10], [0, 10]]
+  },
+  "height": { "type": "flat", "h": 5 },
+  "surfaces": [
+    { "id": "floor", "type": "floor", "materialId": null },
+    { "id": "ceiling", "type": "ceiling", "materialId": null },
+    { "id": "wall_0", "type": "wall", "materialId": null },
+    { "id": "wall_1", "type": "wall", "materialId": null },
+    { "id": "wall_2", "type": "wall", "materialId": null },
+    { "id": "wall_3", "type": "wall", "materialId": null },
+    { "id": "wall_4", "type": "wall", "materialId": null },
+    { "id": "wall_5", "type": "wall", "materialId": null }
+  ],
+  "obstacles": [],
+  "openings": [],
+  "zones": {
+    "stage": null,
+    "audience": [
+      {
+        "id": "zone_audience",
+        "polygon": [[1, 1], [11, 1], [11, 5], [1, 5]],
+        "earHeight": 1.2,
+        "seated": true
+      }
+    ]
+  }
+}

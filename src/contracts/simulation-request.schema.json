@@ -110,6 +110,27 @@
             "energy",
             "complex"
           ]
+        },
+        "rtTargetS": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -929,7 +950,14 @@
           },
           "programSpectrum": {
             "type": "string",
-            "minLength": 1
+            "enum": [
+              "percussion",
+              "strings",
+              "keys",
+              "vocals",
+              "live_band",
+              "flat_reference"
+            ]
           }
         },
         "required": [

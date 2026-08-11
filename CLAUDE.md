@@ -3,8 +3,9 @@
 # AURA — aura-admin
 
 ## Qué es
-App de administración de AURA (simulación acústica de recintos cerrados). Doc maestro:
-`develop-plan.html` (raíz del repo) — fuente de verdad; ante conflicto, gana el doc.
+App de administración de AURA (simulación acústica de recintos cerrados). Hay un doc maestro
+que es la fuente de verdad — ante conflicto, gana el doc. No está versionado y no se publica:
+vive solo en la copia local de quien trabaja el repo.
 
 ## Comandos
 pnpm dev · pnpm test · pnpm biome check --write · pnpm prisma migrate dev · pnpm typecheck
@@ -23,3 +24,6 @@ pnpm contracts:build (regenera src/contracts/*.schema.json desde los zod)
 ## Contexto rápido
 Estados de escena: DRAFT→FLOW_READY→ROOM_READY→SIMULATED. El motor vive en el repo
 aura-engine (no lo toques desde aquí). ENGINE_MODE=mock devuelve canon-01.expected.json.
+
+Lo que la app necesita saber del motor —contrato, firma HMAC, callbacks, errores— está en
+`../aura-engine/README.md`. Léelo ahí: una copia en este repo deriva y ya pasó una vez.

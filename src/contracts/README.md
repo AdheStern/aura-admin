@@ -86,6 +86,13 @@ no conozca, y el CI de cada repo valida sus fixtures contra su copia local.
 - **α hasta 1.2** en `MaterialSpec.absorption`: los coeficientes Sabine medidos en cámara
   reverberante (ISO 354) superan 1.0 por difracción de bordes, y las tablas estándar traen
   valores como 1.05. `scattering` sí queda acotado a [0, 1] porque es una fracción real.
+- **`RoomGeometry`: la k-ésima superficie de tipo `wall` es la arista k del footprint** (vértice k →
+  k+1). El contrato no podía expresarlo —`surfaces` es una lista y los ids son opacos— y sin la
+  convención el reparto de materiales solo funciona en plantas rectangulares con muros nombrados por
+  punto cardinal, que es lo que hace CANON-01 y no generaliza. De ella cuelga el marco local de las
+  aberturas: `rect` mide `x` desde el primer vértice de la arista e `y` desde el piso. Fijada en
+  Fase 3 al escribir el editor 2D; **el JSON Schema no cambia** (es documentación, no un campo), pero
+  `aura-engine/contracts` tiene que llevar la misma nota antes de escribir `room_builder.py`.
 - **`zones.audience` mínimo 1**: sin zona de audiencia no hay grilla de escucha que calcular.
 - **`ism.maxOrder` 0–17**: el tope es el que expone la UI avanzada.
 - **`bands` restringido a las seis bandas de octava** de la Sección 02.
@@ -94,6 +101,8 @@ no conozca, y el CI de cada repo valida sus fixtures contra su copia local.
 
 ## Abierto
 
-- **`height.type: "gable"`** está declarado en el doc pero sin parámetros propios (una segunda
-  altura de cumbrera), así que hoy se valida igual que `"flat"` y el motor lo trataría igual.
-  Hay que cerrarlo antes de la Fase 3 (editor 2D) o degradarlo a v2.
+- **`height.type: "gable"` queda para v2.** Sigue declarado en el contrato pero sin parámetros de
+  cumbrera, así que el motor lo trataría igual que `"flat"`. Decisión de Fase 3 (§14 del doc
+  maestro): el editor 2D solo emite `"flat"` —su documento interno ni siquiera representa la otra
+  variante— y el techo a dos aguas entra cuando el contrato gane sus parámetros por el procedimiento
+  de la Sección 07.

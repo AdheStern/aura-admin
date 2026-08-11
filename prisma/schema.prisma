@@ -30,6 +30,8 @@ model User {
 
   projects       Project[]
   projectMembers ProjectMember[]
+  simulations    Simulation[]
+  settings       UserSettings?
 
   status       String? @default("ACTIVE")
   departmentId String?
@@ -151,7 +153,6 @@ model Department {
 }
 
 // ------- Dominio AURA: proyectos y escenas (Sección 4.1, Fase 1) -------
-// Scene.simulations Simulation[] se omite: el modelo Simulation llega en Fase 5/6.
 model Project {
   id             String          @id @default(cuid())
   name           String
@@ -184,18 +185,97 @@ model ProjectMember {
 }
 
 model Scene {
-  id         String   @id @default(cuid())
-  projectId  String
-  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  name       String
-  signalFlow Json     @default("{}")
-  room       Json     @default("{}")
-  status     String   @default("DRAFT") // SceneStatus: DRAFT|FLOW_READY|ROOM_READY|SIMULATED
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String       @id @default(cuid())
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String
+  signalFlow  Json         @default("{}")
+  room        Json         @default("{}") // RoomDocument v1: el borrador del editor 2D, que compila a RoomGeometry (ver 4.2)
+  // SceneSimulation v1: ambiente + config que el panel del editor 3D edita ANTES de simular. El doc
+  // maestro solo declara dónde vive la config CONGELADA (Simulation.config, Fase 5/6) y RoomGeometry
+  // no admite ninguno de los dos, así que el borrador necesitaba columna propia: "a cuántos grados
+  // está la sala" y "con qué orden ISM se calcula" no son geometría del recinto.
+  simulation  Json         @default("{}")
+  status      String       @default("DRAFT") // SceneStatus: DRAFT|FLOW_READY|ROOM_READY|SIMULATED
+  simulations Simulation[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   @@index([projectId])
   @@map("scene")
+}
+
+// ------- Dominio AURA: simulaciones (Sección 4.1, Fase 5) -------
+// El motor nunca escribe aquí: entrega por callback a /api/internal/jobs/:jobId y esta app sigue
+// siendo el único dueño del esquema (Sección 03). `request` guarda el payload entero porque el
+// motor es una función pura (ADR-03): con él se reproduce el resultado sin depender del estado
+// actual de la escena, que para entonces ya puede haber cambiado.
+model Simulation {
+  id          String         @id @default(cuid())
+  sceneId     String
+  scene       Scene          @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  requestHash String // sha256 del request SIN jobId/simulationId (cambian por corrida) → dedup
+  config      Json // SimulationConfig congelada
+  request     Json // SimulationRequest v1 completo (contracts/simulation-request.schema.ts)
+  job         SimulationJob?
+  results     SimResult[]
+  createdById String
+  createdBy   User           @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt   DateTime       @default(now())
+
+  @@index([sceneId])
+  @@map("simulation")
+}
+
+model SimulationJob {
+  id           String     @id @default(cuid())
+  simulationId String     @unique
+  simulation   Simulation @relation(fields: [simulationId], references: [id], onDelete: Cascade)
+  status       String     @default("QUEUED") // JobStatus: QUEUED|RUNNING|COMPLETED|FAILED|CANCELLED
+  progress     Int        @default(0) // 0–100 y monótono: una barra que retrocede parece un fallo
+  error        Json?
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  // No está en la Sección 4.1, pero la 08 exige pasar a FAILED:TIMEOUT un job sin latido durante
+  // 10 minutos, y sin una marca que cada latido refresque esa regla no se puede implementar.
+  updatedAt    DateTime   @updatedAt
+
+  @@index([status])
+  @@map("simulation_job")
+}
+
+// Una fila por `kind` en vez de un blob único: el resumen se consulta y lista, las grillas solo se
+// leen al abrir la vista de resultados.
+model SimResult {
+  id           String     @id @default(cuid())
+  simulationId String
+  simulation   Simulation @relation(fields: [simulationId], references: [id], onDelete: Cascade)
+  kind         String // ResultKind: SUMMARY|SPL_GRID|RT_BANDS|CLARITY_GRID|RECOMMENDATIONS|ALERTS
+  summary      Json? // métricas agregadas consultables
+  payload      Json? // datos densos (grillas); el doc manda a storagePath si pasa de 1 MB
+  storagePath  String?
+
+  @@index([simulationId, kind])
+  @@map("sim_result")
+}
+
+// ------- Dominio AURA: preferencias de usuario (Sección 4.1, Fase 6) -------
+// La API key del LLM se guarda CIFRADA con AES-256-GCM (ADR-08) y no vuelve al cliente nunca más
+// después de guardarse: la UI solo sabe si hay una y sus últimos caracteres. Viaja descifrada a un
+// único sitio, el payload de la simulación que la necesita, y ni siquiera se persiste ahí.
+//
+// units y defaultMode los declara el doc; todavía no los lee nadie (v1 es métrico y el modo vive
+// por escena). Están para que el modelo sea el de la §4.1 y no una versión recortada que luego
+// nadie recuerde completar.
+model UserSettings {
+  userId          String  @id
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  llmProvider     String? // anthropic | google | deepseek
+  llmApiKeyCipher String? // base64(iv ‖ tag ‖ cifrado); nunca sale al cliente
+  units           String  @default("metric")
+  defaultMode     String  @default("simple")
+
+  @@map("user_settings")
 }
 
 // ------- Dominio AURA: catálogos (Sección 4.2, Fase 1) -------

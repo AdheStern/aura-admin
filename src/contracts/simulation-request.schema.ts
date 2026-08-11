@@ -30,6 +30,30 @@ export const simulationConfigSchema = z.strictObject({
   }),
   /** complex considera fase y polaridad → detecta cancelaciones entre cajas. */
   summation: z.enum(["energy", "complex"]),
+  /**
+   * Rango objetivo de RT60 en segundos, [min, max]. Lo que evalúa `RtTargetRule`.
+   *
+   * Viaja como RANGO y no como `roomType` (ADR 0003): la taxonomía —"iglesia", "auditorio"— es
+   * vocabulario de producto en español y vive en `aura-admin` como preset de UI. El motor no
+   * necesita saber qué es una iglesia, necesita el rango. Además así el usuario puede teclear un
+   * objetivo propio, que es el caso del cálculo inverso de la Sección 02, y añadir un tipo de sala
+   * deja de exigir desplegar el motor.
+   *
+   * `null` significa "no evalúes RtTargetRule": una escena sin objetivo declarado no debe recibir
+   * una recomendación de tratamiento contra un rango que nadie eligió.
+   *
+   * El `min <= max` NO viaja en el JSON Schema —no hay forma de expresarlo— así que lo comprueban
+   * los dos lados por su cuenta: aquí para que el error salga en el formulario, y el motor otra vez
+   * en su frontera. Sin esto un rango invertido pondría a toda banda a la vez por encima del máximo
+   * y por debajo del mínimo. `min == max` sí vale: es el objetivo puntual del cálculo inverso.
+   */
+  rtTargetS: z
+    .tuple([z.number().positive(), z.number().positive()])
+    .refine(([min, max]) => min <= max, {
+      message: "El objetivo de RT60 es un rango [mín, máx] y llegó invertido",
+    })
+    .nullable()
+    .default(null),
 });
 
 export const simulationEnvironmentSchema = z.strictObject({
@@ -57,8 +81,20 @@ export const simulationSourceSchema = z.strictObject({
   /** Resuelto del grafo PA→parlante; con la sensibilidad da el SPL a 1 m. */
   electricalPowerW: z.number().positive(),
   spec: speakerSpecSchema,
-  /** Resuelto de las fuentes del grafo, p. ej. "live_band". */
-  programSpectrum: z.string().min(1),
+  /**
+   * Resuelto de las fuentes del grafo. Vocabulario cerrado desde la Fase 6: el motor lo declara
+   * `str` y valida contra su tabla, así que estrechar aquí solo reduce lo que la app puede emitir
+   * y no puede romper a un motor que ya aceptaba un superconjunto (ADR 0005, punto 2). Era la
+   * deuda que `signal-flow/resolution/program-spectrum.ts` arrastraba desde la Fase 2.
+   */
+  programSpectrum: z.enum([
+    "percussion",
+    "strings",
+    "keys",
+    "vocals",
+    "live_band",
+    "flat_reference",
+  ]),
 });
 
 /** La key llega descifrada solo aquí y solo si el usuario configuró una (ADR-08). */

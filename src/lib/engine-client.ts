@@ -1,24 +1,33 @@
 // src/lib/engine-client.ts — Facade del motor de simulación (Apéndice A.5 del doc maestro)
-// ENGINE_MODE=mock (default) evita cualquier llamada de red hacia aura-engine.
-// El cliente real (POST /v1/simulations con HMAC) llega en la Fase 5, detrás de esta misma interfaz.
+// ENGINE_MODE=mock (default) no habla con aura-engine, pero sí con las rutas de callback de esta
+// misma app: los tres modos recorren el mismo camino de ingesta.
 
-import { createMockEngineClient } from "@/lib/engine-client.mock";
+import { createHttpEngineClient } from "@/lib/engine-client.http";
+import { createLoopbackEngineClient } from "@/lib/engine-client.mock";
 import type { EngineClient } from "@/lib/engine-client.types";
+import {
+  appUrl,
+  engineMode,
+  engineSharedSecret,
+  engineUrl,
+} from "@/lib/engine-env";
 
-export type {
-  EngineClient,
-  EngineJobStatus,
-  EngineJobUpdate,
+export {
+  type EngineClient,
+  type EngineJobStatus,
+  type EngineJobUpdate,
+  EngineSubmitError,
+  type JobError,
+  type JobErrorCode,
 } from "@/lib/engine-client.types";
 
 export function getEngineClient(): EngineClient {
-  const mode = process.env.ENGINE_MODE ?? "mock";
+  const mode = engineMode();
+  const secret = engineSharedSecret();
 
-  if (mode === "mock" || mode === "mock-fail") {
-    return createMockEngineClient(mode);
+  if (mode === "http") {
+    return createHttpEngineClient(engineUrl(), secret);
   }
 
-  throw new Error(
-    `ENGINE_MODE="${mode}" no soportado todavía — el cliente real llega en la Fase 5.`,
-  );
+  return createLoopbackEngineClient(mode, secret, appUrl());
 }
