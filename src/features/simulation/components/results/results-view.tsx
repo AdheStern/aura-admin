@@ -16,8 +16,9 @@ import { SplMapPanel } from "@/features/simulation/components/results/spl-map-pa
 import { SummaryTiles } from "@/features/simulation/components/results/summary-tiles";
 import { ValidityNotes } from "@/features/simulation/components/results/validity-notes";
 import type { SimulationView } from "@/features/simulation/model/from-sim-results";
+import { resolveTreatments } from "@/features/simulation/queries/resolve-treatment";
 
-export function ResultsView({
+export async function ResultsView({
   view,
   document,
   resolutionM,
@@ -32,6 +33,9 @@ export function ResultsView({
 }) {
   const { bands, splGrid, recommendations } = view;
   const splValues = splGrid?.valuesDbA;
+  // Se resuelven todas de una vez: el request y el catálogo son los mismos para las dos
+  // direcciones que RtTargetRule puede emitir.
+  const treatments = await resolveTreatments(simulationId, recommendations);
 
   return (
     <div className="flex flex-col gap-8">
@@ -49,6 +53,7 @@ export function ResultsView({
                 recommendation={recommendation}
                 simulationId={simulationId}
                 canApply={canApply}
+                treatment={treatments.get(recommendation.id)}
               />
             ))}
           </div>

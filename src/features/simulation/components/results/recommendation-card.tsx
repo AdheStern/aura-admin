@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { SimulationRecommendation } from "@/contracts";
 import { ApplyOrientationButton } from "@/features/simulation/components/results/apply-orientation-button";
+import { TreatmentOptions } from "@/features/simulation/components/results/treatment-options";
+import type { Treatment } from "@/features/simulation/queries/resolve-treatment";
 import { isRepositionAction } from "@/features/simulation/schemas/reposition-action";
 
 const ACTIONS: Record<string, string> = {
@@ -28,11 +30,14 @@ export function RecommendationCard({
   recommendation,
   simulationId,
   canApply,
+  treatment,
 }: {
   recommendation: SimulationRecommendation;
   simulationId: string;
   /** Aplicar escribe en el recinto, así que es cosa de OWNER/EDITOR. */
   canApply: boolean;
+  /** Solo en las de absorción, y solo si algo del catálogo cabe en alguna superficie. */
+  treatment?: Treatment;
 }) {
   const { action, evidence, text, priority, rule } = recommendation;
 
@@ -48,6 +53,8 @@ export function RecommendationCard({
         <p className="text-sm">{text}</p>
 
         <ActionDetail action={action} />
+
+        {treatment ? <TreatmentOptions treatment={treatment} /> : null}
 
         {evidence ? (
           <div className="rounded-md bg-muted/50 p-3">
