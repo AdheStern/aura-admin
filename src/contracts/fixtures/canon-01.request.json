@@ -6,8 +6,12 @@
     "mode": "advanced",
     "methods": ["statistical", "direct_field"],
     "bands": [125, 250, 500, 1000, 2000, 4000],
-    "grid": { "resolutionM": 1.0, "earHeightM": 1.2 },
-    "summation": "energy"
+    "grid": {
+      "resolutionM": 1.0,
+      "earHeightM": 1.2
+    },
+    "summation": "energy",
+    "rtTargetS": null
   },
   "environment": {
     "temperatureC": 20,
@@ -20,14 +24,41 @@
     "footprint": {
       "vertices": [[0, 0], [20, 0], [20, 12], [0, 12]]
     },
-    "height": { "type": "flat", "h": 6 },
+    "height": {
+      "type": "flat",
+      "h": 6
+    },
     "surfaces": [
-      { "id": "floor", "type": "floor", "materialId": "mat_canon" },
-      { "id": "ceiling", "type": "ceiling", "materialId": "mat_canon" },
-      { "id": "wall_n", "type": "wall", "materialId": "mat_canon" },
-      { "id": "wall_s", "type": "wall", "materialId": "mat_canon" },
-      { "id": "wall_e", "type": "wall", "materialId": "mat_canon" },
-      { "id": "wall_w", "type": "wall", "materialId": "mat_canon" }
+      {
+        "id": "floor",
+        "type": "floor",
+        "materialId": "mat_canon"
+      },
+      {
+        "id": "ceiling",
+        "type": "ceiling",
+        "materialId": "mat_canon"
+      },
+      {
+        "id": "wall_n",
+        "type": "wall",
+        "materialId": "mat_canon"
+      },
+      {
+        "id": "wall_s",
+        "type": "wall",
+        "materialId": "mat_canon"
+      },
+      {
+        "id": "wall_e",
+        "type": "wall",
+        "materialId": "mat_canon"
+      },
+      {
+        "id": "wall_w",
+        "type": "wall",
+        "materialId": "mat_canon"
+      }
     ],
     "obstacles": [],
     "openings": [],
@@ -71,7 +102,11 @@
       "id": "spk_1",
       "catalogRef": "CatalogSpeaker:canon-01",
       "position": [1, 6, 4],
-      "rotationDeg": { "yaw": 0, "pitch": 0, "roll": 0 },
+      "rotationDeg": {
+        "yaw": 0,
+        "pitch": 0,
+        "roll": 0
+      },
       "levelDb": 0,
       "polarityInverted": false,
       "delayMs": 0,
@@ -79,15 +114,24 @@
       "spec": {
         "schemaVersion": "1",
         "kind": "point_source",
-        "transducers": { "lf": "12in", "hf": "1.4in" },
+        "transducers": {
+          "lf": "12in",
+          "hf": "1.4in"
+        },
         "power": {
           "continuousW": 500,
           "programW": 1000,
           "peakW": 2000,
           "impedanceOhm": 8
         },
-        "sensitivity": { "dbSpl1w1m": 96, "reference": "1W/1m" },
-        "maxSpl": { "continuousDb": 130, "peakDb": 136 },
+        "sensitivity": {
+          "dbSpl1w1m": 96,
+          "reference": "1W/1m"
+        },
+        "maxSpl": {
+          "continuousDb": 130,
+          "peakDb": 136
+        },
         "frequencyResponse": {
           "rangeHz": [125, 4000],
           "toleranceDb": 0,
@@ -101,7 +145,10 @@
           ]
         },
         "directivity": {
-          "nominalCoverage": { "hDeg": 90, "vDeg": 60 },
+          "nominalCoverage": {
+            "hDeg": 90,
+            "vDeg": 60
+          },
           "diByBand": {
             "125": 9,
             "250": 9,
@@ -117,7 +164,10 @@
           "dimensionsMm": [400, 600, 350],
           "rigging": true
         },
-        "electrical": { "connectors": ["speakon_nl4"], "activePowered": false }
+        "electrical": {
+          "connectors": ["speakon_nl4"],
+          "activePowered": false
+        }
       },
       "programSpectrum": "flat_reference"
     }

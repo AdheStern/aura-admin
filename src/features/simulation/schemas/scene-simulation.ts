@@ -46,6 +46,9 @@ export const SIMPLE_CONFIG: SimulationConfig = {
   rayTracing: { nRays: 20_000, seed: 42 },
   grid: { resolutionM: 1, earHeightM: 1.2 },
   summation: "energy",
+  // Sin objetivo de RT60 mientras nadie lo elija: null apaga RtTargetRule (ADR 0003), y suponerle
+  // uno le daría al usuario recomendaciones de tratamiento contra un rango que nunca pidió.
+  rtTargetS: null,
 };
 
 export const sceneSimulationSchema = z.strictObject({
