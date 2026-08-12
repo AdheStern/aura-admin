@@ -8,7 +8,11 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { SpeakerNodeData } from "@/features/signal-flow/schemas/node-data";
+import { SpeakerLevelSlider } from "@/features/signal-flow/components/speaker-level-slider";
+import {
+  DELAY_MS_RANGE,
+  type SpeakerNodeData,
+} from "@/features/signal-flow/schemas/node-data";
 import { useFlowStore } from "@/features/signal-flow/store/flow-store-provider";
 
 export function SpeakerSettingsForm({
@@ -29,22 +33,11 @@ export function SpeakerSettingsForm({
         Ajustes de escena
       </h3>
 
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="speaker-level">Nivel (dB)</Label>
-        <Input
-          id="speaker-level"
-          type="number"
-          step={0.5}
-          value={data.levelDb}
-          disabled={!canManage}
-          onChange={(event) => {
-            const value = Number(event.target.value);
-            if (Number.isFinite(value)) {
-              updateSpeakerSettings(nodeId, { levelDb: value });
-            }
-          }}
-        />
-      </div>
+      <SpeakerLevelSlider
+        value={data.levelDb}
+        disabled={!canManage}
+        onChange={(levelDb) => updateSpeakerSettings(nodeId, { levelDb })}
+      />
 
       <div className="flex items-center gap-2">
         <Checkbox
@@ -63,18 +56,25 @@ export function SpeakerSettingsForm({
         <Input
           id="speaker-delay"
           type="number"
-          min={0}
-          step={1}
+          min={DELAY_MS_RANGE.min}
+          max={DELAY_MS_RANGE.max}
+          step={DELAY_MS_RANGE.step}
           value={data.delayMs}
           disabled={!canManage}
           onChange={(event) => {
             const value = Number(event.target.value);
+            // Se recorta al escribir y no al guardar: por el mismo motivo que el nivel es un
+            // deslizador, un valor que el schema rechaza no debe llegar a existir en el documento.
             if (Number.isFinite(value)) {
-              updateSpeakerSettings(nodeId, { delayMs: value });
+              updateSpeakerSettings(nodeId, { delayMs: clampDelayMs(value) });
             }
           }}
         />
       </div>
     </div>
   );
+}
+
+function clampDelayMs(value: number): number {
+  return Math.min(DELAY_MS_RANGE.max, Math.max(DELAY_MS_RANGE.min, value));
 }

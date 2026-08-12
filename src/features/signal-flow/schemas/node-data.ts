@@ -58,13 +58,30 @@ const paNodeDataSchema = z.strictObject({
  * caja y el mismo panel afina su nivel, así que la action que los parchea desde el recinto valida
  * contra ESTE schema en vez de reescribir los rangos y arriesgarse a que diverjan.
  */
+/**
+ * Los límites, exportados, porque los controles del panel tienen que acotar EXACTAMENTE esto. Con
+ * un campo numérico libre se podía teclear +20 dB: nada avisaba al escribirlo y el rechazo llegaba
+ * al guardar, con el número ya en pantalla y sin decir cuál era el tope. Un control que no puede
+ * producir un valor inválido cierra ese agujero de raíz, pero solo si lee el rango de aquí.
+ */
+export const LEVEL_DB_RANGE = { min: -60, max: 12, step: 0.5 } as const;
+export const DELAY_MS_RANGE = { min: 0, max: 1000, step: 1 } as const;
+
 export const speakerAudioSchema = z.strictObject({
   /** Trim relativo aplicado sobre el nivel resuelto por la cadena eléctrica. */
-  levelDb: z.number().min(-60).max(12).default(0),
+  levelDb: z
+    .number()
+    .min(LEVEL_DB_RANGE.min)
+    .max(LEVEL_DB_RANGE.max)
+    .default(0),
   /** Inversión de polaridad (±180°): la suma compleja del motor la usa para detectar cancelaciones. */
   polarityInverted: z.boolean().default(false),
   /** Retardo de alineación. El máximo real lo limita el procesador; aquí solo se acota a lo sano. */
-  delayMs: z.number().min(0).max(1000).default(0),
+  delayMs: z
+    .number()
+    .min(DELAY_MS_RANGE.min)
+    .max(DELAY_MS_RANGE.max)
+    .default(0),
 });
 
 export type SpeakerAudio = z.infer<typeof speakerAudioSchema>;
