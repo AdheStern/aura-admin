@@ -18,7 +18,12 @@ export default defineConfig({
   // Next dev (Turbopack) compila cada ruta la primera vez que se visita — se ha visto hasta ~20 s
   // en la primera carga de una ruta pesada. El default de 30 s de Playwright confunde eso con un
   // test colgado.
-  timeout: 120_000,
+  //
+  // El camino dorado recorre ocho pantallas, espera dos autosaves con debounce y una simulación
+  // entera: con 120 s iba justo al límite y fallaba por lo más lento de cada corrida, que no era
+  // siempre lo mismo. Un techo holgado no esconde nada —un cuelgue de verdad no acaba nunca— y sí
+  // evita un test que se cae por el compilado en frío de una ruta.
+  timeout: 240_000,
   use: {
     baseURL: "http://localhost:3000",
     trace: "retain-on-failure",

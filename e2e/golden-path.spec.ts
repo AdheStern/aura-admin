@@ -214,12 +214,12 @@ test("fuente → consola → PA → 2 parlantes → simulación → recinto deja
     // lo que hace aparecer la recomendación de tratamiento más abajo.
     await pickRtTarget(page, "Auditorio mixto");
 
-    // Esperar al autosave NO es cosmético: el payload se compila desde lo GUARDADO, así que
-    // simular antes de que aterrice el debounce manda la configuración anterior — y los resultados
-    // salen marcados como desactualizados en cuanto el guardado llega después.
-    await expect(page.getByText("Guardado")).toBeVisible({ timeout: 10_000 });
-
-    await page.click('button:has-text("Simular")');
+    // El boton se llama "Guardando cambios..." y esta deshabilitado hasta que aterriza el autosave:
+    // el payload se compila desde lo GUARDADO, asi que simular antes mandaria la configuracion
+    // anterior. Esperar a que vuelva a decir "Simular" es esperar exactamente a eso.
+    const simulate = page.getByRole("button", { name: "Simular", exact: true });
+    await expect(simulate).toBeEnabled({ timeout: 15_000 });
+    await simulate.click();
     // El loopback entrega seis latidos de 500 ms antes del resultado, así que da tiempo a verlo.
     await expect(page.getByText("Cancelar")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText("Simulación completada")).toBeVisible({
@@ -236,6 +236,8 @@ test("fuente → consola → PA → 2 parlantes → simulación → recinto deja
       page.getByRole("heading", { name: /^Resultados ·/ }),
     ).toBeVisible({ timeout: 30_000 });
 
+    // El veredicto es lo primero que se lee, y es lo unico que responde a "esta bien la sala".
+    await expect(page.getByText(/^La sala /)).toBeVisible();
     await expect(page.getByText("Nivel medio")).toBeVisible();
     await expect(page.getByText("RT60 (Sabine)")).toBeVisible();
     await expect(
@@ -268,7 +270,11 @@ test("fuente → consola → PA → 2 parlantes → simulación → recinto deja
     // Cambiar el objetivo cambia `config`, y con él el hash del request: es exactamente lo que
     // is-simulation-outdated compara.
     await pickRtTarget(page, "Palabra");
-    await expect(page.getByText("Guardado")).toBeVisible({ timeout: 10_000 });
+    // Mismo criterio que arriba: el boton vuelve a decir "Simular" cuando el cambio ya esta en la
+    // base, que es justo lo que cambia el hash con el que se compara la escena.
+    await expect(
+      page.getByRole("button", { name: "Simular", exact: true }),
+    ).toBeEnabled({ timeout: 15_000 });
 
     await page.goto(resultsUrl);
     await expect(

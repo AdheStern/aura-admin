@@ -20,12 +20,12 @@ type Tile = {
   note?: string;
 };
 
+// Nivel medio, uniformidad y RT60 de Sabine NO están aquí: los enseña el veredicto de arriba, que
+// existe justo para eso. Repetir la misma cifra a cuatrocientos píxeles no añade nada y obliga a
+// comprobar que las dos dicen lo mismo.
 const TILES: Tile[] = [
-  { key: "splAvgDb", label: "Nivel medio", unit: "dBA" },
-  { key: "splSigmaDb", label: "Uniformidad (σ)", unit: "dB" },
   { key: "splMinDb", label: "Nivel mínimo", unit: "dBA" },
   { key: "splMaxDb", label: "Nivel máximo", unit: "dBA" },
-  { key: "rt60SabineS", label: "RT60 (Sabine)", unit: "s" },
   { key: "rt60EyringS", label: "RT60 (Eyring)", unit: "s" },
   {
     key: "schroederHz",

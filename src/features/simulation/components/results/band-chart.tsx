@@ -3,9 +3,9 @@
 // Dos series como mucho y en un solo eje: RT60 y EDT comparten segundos, C50 y C80 comparten dB.
 // Dos escalas en un mismo gráfico inventarían una correlación que no está en los datos.
 //
-// Los colores son --chart-2 y --chart-5, no dos peldaños contiguos de la rampa del tema: medidos,
-// esos dos separan ΔE 25 en visión normal y 24.6 bajo deuteranopía, mientras que dos peldaños
-// vecinos se quedan en 6 y son indistinguibles. La tabla de abajo es el camino sin color al valor.
+// Los colores son los dos PRIMEROS de la paleta categórica, en orden y sin reciclar. Medidos con el
+// validador: separan ΔE 24.3 en visión normal y 12.5 bajo protanopía, sobre unos mínimos de 15 y 8.
+// La tabla de abajo es el camino sin color al valor, para quien no distinga ninguno de los dos.
 
 "use client";
 
@@ -27,8 +27,8 @@ export type BandSeries = {
   values: SimulationSummary["rt60"];
 };
 
-/** Los dos únicos slots validados como par; el orden importa y no se recicla. */
-const SERIES_COLORS = ["var(--chart-2)", "var(--chart-5)"] as const;
+/** Los dos primeros slots de la paleta, en orden fijo: el color sigue a la serie, no a su puesto. */
+const SERIES_COLORS = ["var(--chart-1)", "var(--chart-2)"] as const;
 
 export function BandChart({
   title,

@@ -11,6 +11,7 @@ import type { RoomDocument } from "@/features/room-editor/schemas/room-document"
 import { AlertsPanel } from "@/features/simulation/components/results/alerts-panel";
 import { BandChart } from "@/features/simulation/components/results/band-chart";
 import { RecommendationCard } from "@/features/simulation/components/results/recommendation-card";
+import { ResultsVerdict } from "@/features/simulation/components/results/results-verdict";
 import { SplHistogram } from "@/features/simulation/components/results/spl-histogram";
 import { SplMapPanel } from "@/features/simulation/components/results/spl-map-panel";
 import { SummaryTiles } from "@/features/simulation/components/results/summary-tiles";
@@ -39,6 +40,12 @@ export async function ResultsView({
 
   return (
     <div className="flex flex-col gap-8">
+      <ResultsVerdict
+        alerts={view.alerts}
+        scalars={view.scalars}
+        recommendationCount={recommendations.length}
+      />
+
       <AlertsPanel alerts={view.alerts} />
 
       {recommendations.length > 0 ? (
