@@ -17,11 +17,17 @@ import { useAutosaveRoom } from "@/features/room-editor/hooks/use-autosave-room"
 import type { RoomStoreInit } from "@/features/room-editor/store/room-store";
 import { RoomStoreProvider } from "@/features/room-editor/store/room-store-provider";
 
-export function RoomEditor({ init }: { init: RoomStoreInit }) {
+export function RoomEditor({
+  init,
+  sceneName,
+}: {
+  init: RoomStoreInit;
+  sceneName: string;
+}) {
   return (
     <RoomStoreProvider init={init}>
-      <div className="flex h-[80vh] min-h-[600px] flex-col rounded-lg border">
-        <RoomToolbar />
+      <div className="flex h-full min-h-0 flex-col">
+        <RoomToolbar sceneName={sceneName} />
         <div className="flex min-h-0 flex-1">
           <ToolSidebar />
           <RoomCanvasWithAutosave />

@@ -1,6 +1,5 @@
 // src/app/(app)/projects/[projectId]/scenes/[sceneId]/room/page.tsx — editor 2D del recinto.
 
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { RoomEditor } from "@/features/room-editor/components/room-editor";
 import { listRoomMaterialOptions } from "@/features/room-editor/queries/list-room-material-options";
@@ -31,30 +30,19 @@ export default async function SceneRoomPage({
   const validation = validateRoom(parsedDocument.data, materialLibrary);
   const canManage = scene.role === "OWNER" || scene.role === "EDITOR";
 
+  // Sin cabecera propia: el editor llena la ventana y el nombre va en su franja de título.
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <Link
-          href={`/projects/${projectId}/scenes/${sceneId}/flow`}
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          ← Flujo de señal
-        </Link>
-        <h1 className="font-heading text-2xl font-bold tracking-tight">
-          {scene.name}
-        </h1>
-      </div>
-      <RoomEditor
-        init={{
-          sceneId: scene.id,
-          canManage,
-          document: parsedDocument.data,
-          materialOptions: materialLibrary.options,
-          materialIds: materialLibrary.materialIds,
-          sceneStatus: scene.status,
-          validation,
-        }}
-      />
-    </div>
+    <RoomEditor
+      sceneName={scene.name}
+      init={{
+        sceneId: scene.id,
+        canManage,
+        document: parsedDocument.data,
+        materialOptions: materialLibrary.options,
+        materialIds: materialLibrary.materialIds,
+        sceneStatus: scene.status,
+        validation,
+      }}
+    />
   );
 }

@@ -27,11 +27,17 @@ import {
   useFlowStore,
 } from "@/features/signal-flow/store/flow-store-provider";
 
-export function FlowEditor({ init }: { init: FlowStoreInit }) {
+export function FlowEditor({
+  init,
+  sceneName,
+}: {
+  init: FlowStoreInit;
+  sceneName: string;
+}) {
   return (
     <FlowStoreProvider init={init}>
-      <div className="flex h-[80vh] min-h-[600px] flex-col rounded-lg border">
-        <FlowToolbar />
+      <div className="flex h-full min-h-0 flex-col">
+        <FlowToolbar sceneName={sceneName} />
         <div className="flex min-h-0 flex-1">
           <FlowCanvas />
           <SpecsPanel />

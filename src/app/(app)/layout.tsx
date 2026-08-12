@@ -4,13 +4,10 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
+import { AppMain } from "@/components/app-main";
 import { AppSidebar } from "@/components/app-sidebar";
-import { ThemeToggle } from "@/components/theme-toggle";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SiteHeader } from "@/components/site-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getActiveUser } from "@/lib/session";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
@@ -23,18 +20,16 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
+    // La altura de la cabecera se declara UNA vez, aquí: los editores restan esta variable para
+    // llenar la ventana sin desbordarla, así que dos cifras distintas darían un scroll fantasma.
+    <SidebarProvider
+      defaultOpen={defaultOpen}
+      style={{ "--header-height": "3.5rem" } as React.CSSProperties}
+    >
       <AppSidebar activeUser={activeUser.data} />
-      <SidebarInset>
-        <header className="flex items-center border-b px-4 py-3">
-          <SidebarTrigger />
-          <div className="ml-auto">
-            <ThemeToggle />
-          </div>
-        </header>
-        <main className="flex flex-1 flex-col px-6 py-8 sm:px-10">
-          {children}
-        </main>
+      <SidebarInset className="h-svh min-h-0 overflow-hidden">
+        <SiteHeader />
+        <AppMain>{children}</AppMain>
       </SidebarInset>
     </SidebarProvider>
   );

@@ -29,11 +29,12 @@ import {
   zoomAtPoint,
 } from "@/features/room-editor/model/canvas-transform";
 import { useRoomStore } from "@/features/room-editor/store/room-store-provider";
+import { SceneEditorHeader } from "@/features/scenes/components/scene-editor-header";
 import { SceneStatusBadge } from "@/features/scenes/components/scene-status-badge";
 
 const ZOOM_BUTTON_STEP = 1.25;
 
-export function RoomToolbar() {
+export function RoomToolbar({ sceneName }: { sceneName: string }) {
   const params = useParams<{ projectId: string; sceneId: string }>();
   const canManage = useRoomStore((state) => state.canManage);
   const history = useRoomStore((state) => state.history);
@@ -50,66 +51,8 @@ export function RoomToolbar() {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b bg-background p-2">
-      {canManage ? (
-        <>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            title={
-              undoLabel(history)
-                ? `Deshacer: ${undoLabel(history)}`
-                : "Deshacer"
-            }
-            disabled={history.past.length === 0}
-            onClick={undo}
-          >
-            <UndoIcon />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            title={
-              redoLabel(history) ? `Rehacer: ${redoLabel(history)}` : "Rehacer"
-            }
-            disabled={history.future.length === 0}
-            onClick={redo}
-          >
-            <RedoIcon />
-          </Button>
-          <Separator orientation="vertical" className="h-6" />
-        </>
-      ) : null}
-
-      <Button
-        variant="outline"
-        size="icon-sm"
-        title="Alejar"
-        onClick={() => zoomBy(1 / ZOOM_BUTTON_STEP)}
-      >
-        <MinusIcon />
-      </Button>
-      <Button
-        variant="outline"
-        size="icon-sm"
-        title="Acercar"
-        onClick={() => zoomBy(ZOOM_BUTTON_STEP)}
-      >
-        <PlusIcon />
-      </Button>
-      <Button
-        variant="outline"
-        size="icon-sm"
-        title="Restablecer vista"
-        onClick={() => setCanvasViewport(DEFAULT_CANVAS_VIEWPORT)}
-      >
-        <RotateCcwIcon />
-      </Button>
-
-      <Separator orientation="vertical" className="h-6" />
-      <ImportExportControls />
-
-      <div className="ml-auto flex items-center gap-3">
+    <>
+      <SceneEditorHeader sceneName={sceneName}>
         <SaveStatusLabel status={saveStatus} />
         <SceneStatusBadge status={sceneStatus} />
         <Room3dEditorLink
@@ -117,7 +60,71 @@ export function RoomToolbar() {
           sceneId={params.sceneId}
           enabled={sceneStatus === "ROOM_READY"}
         />
+      </SceneEditorHeader>
+
+      {/* Acciones sobre el DOCUMENTO, no sobre la escena: deshacer, zoom e import/export. Las de la
+          escena —estado y salto al 3D— viven arriba, en la franja de título. */}
+      <div className="flex flex-wrap items-center gap-2 border-b bg-background px-4 py-2">
+        {canManage ? (
+          <>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              title={
+                undoLabel(history)
+                  ? `Deshacer: ${undoLabel(history)}`
+                  : "Deshacer"
+              }
+              disabled={history.past.length === 0}
+              onClick={undo}
+            >
+              <UndoIcon />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              title={
+                redoLabel(history)
+                  ? `Rehacer: ${redoLabel(history)}`
+                  : "Rehacer"
+              }
+              disabled={history.future.length === 0}
+              onClick={redo}
+            >
+              <RedoIcon />
+            </Button>
+            <Separator orientation="vertical" className="h-6" />
+          </>
+        ) : null}
+
+        <Button
+          variant="outline"
+          size="icon-sm"
+          title="Alejar"
+          onClick={() => zoomBy(1 / ZOOM_BUTTON_STEP)}
+        >
+          <MinusIcon />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon-sm"
+          title="Acercar"
+          onClick={() => zoomBy(ZOOM_BUTTON_STEP)}
+        >
+          <PlusIcon />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon-sm"
+          title="Restablecer vista"
+          onClick={() => setCanvasViewport(DEFAULT_CANVAS_VIEWPORT)}
+        >
+          <RotateCcwIcon />
+        </Button>
+
+        <Separator orientation="vertical" className="h-6" />
+        <ImportExportControls />
       </div>
-    </div>
+    </>
   );
 }

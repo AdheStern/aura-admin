@@ -9,6 +9,7 @@ import { PlusIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { RoomEditorLink } from "@/features/room-editor/components/room-editor-link";
+import { SceneEditorHeader } from "@/features/scenes/components/scene-editor-header";
 import { SceneStatusBadge } from "@/features/scenes/components/scene-status-badge";
 import { FLOW_NODE_DEFINITIONS } from "@/features/signal-flow/model/node-registry";
 import type { FlowNodeKind } from "@/features/signal-flow/schemas/node-kinds";
@@ -25,7 +26,7 @@ const ADD_ORDER: FlowNodeKind[] = [
   "simulation",
 ];
 
-export function FlowToolbar() {
+export function FlowToolbar({ sceneName }: { sceneName: string }) {
   const params = useParams<{ projectId: string; sceneId: string }>();
   const nodes = useFlowStore((state) => state.nodes);
   const addNode = useFlowStore((state) => state.addNode);
@@ -47,9 +48,25 @@ export function FlowToolbar() {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b bg-background p-2">
-      {canManage
-        ? ADD_ORDER.map((kind) => {
+    <>
+      <SceneEditorHeader
+        sceneName={sceneName}
+        meta={`${nodes.length} ${nodes.length === 1 ? "nodo" : "nodos"}`}
+      >
+        <SaveStatusLabel status={saveStatus} />
+        <SceneStatusBadge status={sceneStatus} />
+        <RoomEditorLink
+          projectId={params.projectId}
+          sceneId={params.sceneId}
+          enabled={sceneStatus !== "DRAFT"}
+        />
+      </SceneEditorHeader>
+
+      {/* La paleta va en su propia fila: son las herramientas del lienzo, no acciones de la escena,
+          y mezclarlas con el título dejaría una franja que crece cada vez que se añade un tipo. */}
+      {canManage ? (
+        <div className="flex flex-wrap items-center gap-2 border-b bg-background px-4 py-2">
+          {ADD_ORDER.map((kind) => {
             const definition = FLOW_NODE_DEFINITIONS[kind];
             const countOfKind = nodes.filter(
               (node) => node.data.kind === kind,
@@ -65,18 +82,10 @@ export function FlowToolbar() {
                 <PlusIcon /> {definition.label}
               </Button>
             );
-          })
-        : null}
-      <div className="ml-auto flex items-center gap-3">
-        <SaveStatusLabel status={saveStatus} />
-        <SceneStatusBadge status={sceneStatus} />
-        <RoomEditorLink
-          projectId={params.projectId}
-          sceneId={params.sceneId}
-          enabled={sceneStatus !== "DRAFT"}
-        />
-      </div>
-    </div>
+          })}
+        </div>
+      ) : null}
+    </>
   );
 }
 

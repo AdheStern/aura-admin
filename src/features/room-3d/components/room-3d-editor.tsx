@@ -32,6 +32,7 @@ export function Room3dEditor({
   simulation,
   materialColorsById,
   overlay,
+  sceneName,
 }: {
   init: RoomStoreInit;
   speakers: SpeakerStoreInit["speakers"];
@@ -39,6 +40,7 @@ export function Room3dEditor({
   materialColorsById: MaterialNrcById;
   /** Cobertura de la última simulación completada, o null si no hay ninguna. */
   overlay: SplOverlay | null;
+  sceneName: string;
 }) {
   const scoped = { sceneId: init.sceneId, canManage: init.canManage };
   // Encendido cuando hay algo que enseñar: quien acaba de simular quiere ver el resultado, no
@@ -49,8 +51,9 @@ export function Room3dEditor({
     <RoomStoreProvider init={init}>
       <SpeakerStoreProvider init={{ ...scoped, speakers }}>
         <SimulationStoreProvider init={{ ...scoped, simulation }}>
-          <div className="flex h-[80vh] min-h-[600px] flex-col rounded-lg border">
+          <div className="flex h-full min-h-0 flex-col">
             <Room3dToolbar
+              sceneName={sceneName}
               hasOverlay={overlay !== null}
               showMap={showMap}
               onToggleMap={() => setShowMap((shown) => !shown)}
