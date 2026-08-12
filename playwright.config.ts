@@ -41,6 +41,10 @@ export default defineConfig({
     // la pantalla de resultados no existe y no habría nada que asertar. TRAMPA local: si ya tenías
     // un `pnpm dev` levantado, Playwright lo reusa con el modo que tuviera, y los pasos de
     // resultados fallan sin decir por qué — bájalo antes de correr el E2E.
-    env: { ENGINE_MODE: "mock-full" },
+    // mock-full por defecto: CI no levanta el motor y el loopback recorre la misma ingesta. Pero
+    // se respeta un ENGINE_MODE del entorno para poder correr el mismo camino contra el motor de
+    // verdad —`ENGINE_MODE=http pnpm test:e2e`—, que es la única prueba de que la firma HMAC, el
+    // callback y el contrato cuadran entre los dos repos.
+    env: { ENGINE_MODE: process.env.ENGINE_MODE ?? "mock-full" },
   },
 });
