@@ -20,17 +20,25 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
 
   return (
-    // La altura de la cabecera se declara UNA vez, aquí: los editores restan esta variable para
-    // llenar la ventana sin desbordarla, así que dos cifras distintas darían un scroll fantasma.
+    // La cabecera cruza la ventana entera y el sidebar arranca DEBAJO. Así, al plegarse a iconos,
+    // la franja de arriba no se mueve y el rail queda de una pieza: el logo se pliega con el resto
+    // del menú en vez de quedar suelto a la altura de la cabecera.
+    //
+    // La altura de la cabecera se declara UNA vez, aquí: el sidebar y los editores restan esta
+    // variable para llenar la ventana sin desbordarla, y dos cifras distintas darían un scroll
+    // fantasma.
     <SidebarProvider
       defaultOpen={defaultOpen}
+      className="flex flex-col"
       style={{ "--header-height": "3.5rem" } as React.CSSProperties}
     >
-      <AppSidebar activeUser={activeUser.data} />
-      <SidebarInset className="h-svh min-h-0 overflow-hidden">
-        <SiteHeader />
-        <AppMain>{children}</AppMain>
-      </SidebarInset>
+      <SiteHeader />
+      <div className="flex flex-1">
+        <AppSidebar activeUser={activeUser.data} />
+        <SidebarInset className="h-[calc(100svh-var(--header-height))] min-h-0 overflow-hidden">
+          <AppMain>{children}</AppMain>
+        </SidebarInset>
+      </div>
     </SidebarProvider>
   );
 }

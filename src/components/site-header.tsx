@@ -1,10 +1,10 @@
 // src/components/site-header.tsx — la franja de arriba del área autenticada.
 //
-// Pegada al scroll (`sticky`) porque en los editores el contenido no se desplaza: el lienzo ocupa
-// toda la altura y esta franja es el único sitio fijo desde donde se puede salir.
+// Cruza la ventana entera, por encima del sidebar (ver `(app)/layout.tsx`): plegar el menú no
+// mueve nada de aquí arriba.
 //
-// Altura por variable (`--header-height`) y no por una clase suelta: los editores calculan su alto
-// restándola, así que si las dos cifras dejaran de coincidir el lienzo desbordaría la ventana.
+// Altura por variable (`--header-height`) y no por una clase suelta: el sidebar y los editores
+// calculan su alto restándola, así que si las cifras dejaran de coincidir desbordarían la ventana.
 
 "use client";
 
@@ -19,7 +19,7 @@ export function SiteHeader() {
   const { toggleSidebar } = useSidebar();
 
   return (
-    <header className="sticky top-0 z-50 flex h-(--header-height) shrink-0 items-center gap-2 border-b bg-background px-4">
+    <header className="sticky top-0 z-50 flex h-(--header-height) w-full shrink-0 items-center gap-2 border-b bg-background px-4">
       <Button
         variant="ghost"
         size="icon"

@@ -2,6 +2,7 @@
 // SUPER_ADMIN: el resto de /catalogs/* devuelve 404 para cualquier otro rol (ver catalogs/layout.tsx).
 
 import {
+  AudioWaveformIcon,
   ChevronRightIcon,
   FolderKanbanIcon,
   PackageIcon,
@@ -31,7 +32,11 @@ import type { ActiveUser } from "@/lib/session";
 
 export function AppSidebar({ activeUser }: { activeUser: ActiveUser }) {
   return (
-    <Sidebar collapsible="icon">
+    // Arranca bajo la cabecera y no en el borde superior de la ventana (ver `(app)/layout.tsx`).
+    <Sidebar
+      collapsible="icon"
+      className="top-(--header-height) h-[calc(100svh-var(--header-height))]!"
+    >
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -40,9 +45,19 @@ export function AppSidebar({ activeUser }: { activeUser: ActiveUser }) {
               tooltip="AURA"
               size="lg"
             >
-              <span className="font-heading text-base font-bold tracking-tight">
-                AURA
-              </span>
+              {/* La marca es la placa con el icono, no las letras: plegado el sidebar solo caben
+                  32px y un rótulo de texto ahí se queda en un recorte ilegible. */}
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                <AudioWaveformIcon className="size-4" />
+              </div>
+              <div className="grid flex-1 text-left leading-tight">
+                <span className="truncate font-heading text-sm font-bold tracking-tight">
+                  AURA
+                </span>
+                <span className="truncate text-xs text-sidebar-foreground/70">
+                  Simulación acústica
+                </span>
+              </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
