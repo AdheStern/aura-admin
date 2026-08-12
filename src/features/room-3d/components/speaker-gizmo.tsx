@@ -10,8 +10,9 @@
 import { TransformControls } from "@react-three/drei";
 import { type RefObject, useRef } from "react";
 import type { Group, Object3D } from "three";
-import { CoverageConeMesh } from "@/features/room-3d/components/coverage-cone-mesh";
-import type { CoverageCone } from "@/features/room-3d/model/coverage-cone";
+import { CoverageMesh } from "@/features/room-3d/components/coverage-mesh";
+import { SpeakerBaffle } from "@/features/room-3d/components/speaker-baffle";
+import type { CoverageShape } from "@/features/room-3d/model/coverage-shape";
 import { encodeMeshName } from "@/features/room-3d/model/mesh-selection";
 import {
   type ScenePoint,
@@ -33,7 +34,7 @@ export function SpeakerGizmo({
   position,
   rotation,
   boxM,
-  cone,
+  coverage,
   color,
   isSelected,
   canManage,
@@ -45,7 +46,7 @@ export function SpeakerGizmo({
   position: ScenePoint;
   rotation: SceneRotation;
   boxM: [number, number, number] | null;
-  cone: CoverageCone | null;
+  coverage: CoverageShape | null;
   color: string;
   isSelected: boolean;
   canManage: boolean;
@@ -92,8 +93,9 @@ export function SpeakerGizmo({
           <boxGeometry args={[depthM, heightM, widthM]} />
           <meshStandardMaterial color={color} />
         </mesh>
-        {cone ? (
-          <CoverageConeMesh cone={cone} color={color} isSelected={isSelected} />
+        <SpeakerBaffle depthM={depthM} heightM={heightM} widthM={widthM} />
+        {coverage ? (
+          <CoverageMesh shape={coverage} isSelected={isSelected} />
         ) : null}
       </group>
 

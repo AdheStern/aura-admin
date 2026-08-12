@@ -9,9 +9,9 @@
 
 import { SpeakerGizmo } from "@/features/room-3d/components/speaker-gizmo";
 import {
-  coneThrowM,
-  coverageCone,
-} from "@/features/room-3d/model/coverage-cone";
+  coverageReachM,
+  coverageShape,
+} from "@/features/room-3d/model/coverage-shape";
 import { toScenePoint } from "@/features/room-3d/model/scene-frame";
 import { toSceneRotation } from "@/features/room-3d/model/speaker-orientation";
 import { useSpeakerStore } from "@/features/room-3d/store/speaker-store";
@@ -21,7 +21,9 @@ import { useRoomStore } from "@/features/room-editor/store/room-store-provider";
 
 /** Mismo azul de selección que el resto del editor (canvas-palette.ts). */
 const SELECTED_HEX = "#0ea5e9";
-const SPEAKER_HEX = "#52525b";
+/** #27272a (zinc-800): más oscuro que el extremo absorbente de la rampa de los muros
+ *  (ver nrc-color.ts), o una caja sobre una pared tratada se camuflaría con ella. */
+const SPEAKER_HEX = "#27272a";
 
 const MM_PER_M = 1000;
 
@@ -46,7 +48,7 @@ export function SpeakerRig() {
         const placement = placements[index];
         const isSelected =
           selection?.kind === "speaker" && selection.id === speaker.nodeId;
-        const throwM = coneThrowM(
+        const reachM = coverageReachM(
           [placement.position[0], placement.position[1]],
           document.footprint.vertices,
         );
@@ -58,7 +60,7 @@ export function SpeakerRig() {
             position={toScenePoint(placement.position)}
             rotation={toSceneRotation(placement.rotationDeg)}
             boxM={boxSizeM(speaker.spec)}
-            cone={coverageCone(speaker.spec, throwM)}
+            coverage={coverageShape(speaker.spec, reachM)}
             color={isSelected ? SELECTED_HEX : SPEAKER_HEX}
             isSelected={isSelected}
             canManage={canManage}

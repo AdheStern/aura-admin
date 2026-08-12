@@ -11,7 +11,7 @@
 import type { SpeakerSpec } from "@/contracts/speaker-spec.schema";
 import { SpeakerAudioFields } from "@/features/room-3d/components/speaker-audio-fields";
 import { SpeakerPlacementFields } from "@/features/room-3d/components/speaker-placement-fields";
-import { isOmnidirectional } from "@/features/room-3d/model/coverage-cone";
+import { isOmnidirectional } from "@/features/room-3d/model/coverage-shape";
 import { useSpeakerStore } from "@/features/room-3d/store/speaker-store";
 
 export function SpeakerPanel({ nodeId }: { nodeId: string }) {
@@ -46,7 +46,7 @@ function CoverageNote({ spec }: { spec: SpeakerSpec }) {
   return (
     <p className="text-xs text-muted-foreground">
       {isOmnidirectional(spec)
-        ? "Caja omnidireccional: radia en todas las direcciones, así que no hay cono que dibujar."
+        ? "Caja omnidireccional: radia por igual en todas las direcciones, y por eso se dibuja como esfera y no como cono."
         : "El cono es el modelo paramétrico del ángulo nominal a −6 dB, no una medida de directividad."}
     </p>
   );
