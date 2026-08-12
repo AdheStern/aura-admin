@@ -13,7 +13,6 @@ import { SpeakerRig } from "@/features/room-3d/components/speaker-rig";
 import { SplOverlayMesh } from "@/features/room-3d/components/spl-overlay-mesh";
 import { ZoneMeshes } from "@/features/room-3d/components/zone-meshes";
 import { frameCamera } from "@/features/room-3d/model/frame-camera";
-import type { MaterialNrcById } from "@/features/room-3d/queries/list-room-material-colors";
 import { canvasPalette } from "@/features/room-editor/model/canvas-palette";
 import { useRoomStore } from "@/features/room-editor/store/room-store-provider";
 import type { SplOverlay } from "@/features/simulation/queries/get-latest-spl-grid";
@@ -22,10 +21,8 @@ import type { SplOverlay } from "@/features/simulation/queries/get-latest-spl-gr
 const MAX_POLAR_ANGLE = Math.PI / 2 - 0.02;
 
 export function Room3dCanvas({
-  materialColorsById,
   overlay,
 }: {
-  materialColorsById: MaterialNrcById;
   /** null cuando la escena no tiene ninguna simulación completada, o el mapa está apagado. */
   overlay: SplOverlay | null;
 }) {
@@ -55,7 +52,7 @@ export function Room3dCanvas({
         intensity={0.9}
       />
       <FloorGrid palette={palette} radiusM={radiusM} />
-      <RoomMesh materialColorsById={materialColorsById} />
+      <RoomMesh />
       {/* Después del recinto: son translúcidas y tienen que mezclarse con lo que ya se pintó. */}
       <ZoneMeshes palette={palette} />
       {overlay ? <SplOverlayMesh overlay={overlay} /> : null}

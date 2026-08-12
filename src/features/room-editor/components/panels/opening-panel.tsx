@@ -5,7 +5,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { MaterialSelect } from "@/features/room-editor/components/material-select";
+import { MaterialField } from "@/features/room-editor/components/material-field";
 import { NumberField } from "@/features/room-editor/components/panels/number-field";
 import { useRoomStore } from "@/features/room-editor/store/room-store-provider";
 
@@ -69,13 +69,10 @@ export function OpeningPanel({ openingId }: { openingId: string }) {
           min={MIN_SIZE_M}
           onChange={(v) => setRect({ height: v })}
         />
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm">Material</span>
-          <MaterialSelect
-            value={opening.materialId}
-            onChange={(materialId) => updateOpening(opening.id, { materialId })}
-          />
-        </div>
+        <MaterialField
+          value={opening.materialId}
+          onChange={(materialId) => updateOpening(opening.id, { materialId })}
+        />
       </div>
       {canManage ? (
         <Button

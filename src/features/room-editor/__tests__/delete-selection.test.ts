@@ -25,6 +25,7 @@ function storeWith(document: RoomDocument) {
     canManage: true,
     document,
     materialOptions: [],
+    materialSpecById: new Map(),
     materialIds: NO_MATERIALS.materialIds,
     sceneStatus: "FLOW_READY",
     validation: validateRoom(document, NO_MATERIALS),

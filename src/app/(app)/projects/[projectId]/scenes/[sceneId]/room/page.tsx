@@ -3,6 +3,7 @@
 import { notFound, redirect } from "next/navigation";
 import { RoomEditor } from "@/features/room-editor/components/room-editor";
 import { listRoomMaterialOptions } from "@/features/room-editor/queries/list-room-material-options";
+import { listRoomMaterialSpecs } from "@/features/room-editor/queries/list-room-material-specs";
 import { parseRoom } from "@/features/room-editor/schemas/parse-room";
 import { validateRoom } from "@/features/room-editor/validation/validate-room";
 import { getSceneWithRole } from "@/features/scenes/queries";
@@ -26,7 +27,10 @@ export default async function SceneRoomPage({
   // se corta aquí en vez de renderizar un editor sobre un documento que no se puede interpretar.
   if (!parsedDocument.ok) notFound();
 
-  const materialLibrary = await listRoomMaterialOptions();
+  const [materialLibrary, materialSpecById] = await Promise.all([
+    listRoomMaterialOptions(),
+    listRoomMaterialSpecs(),
+  ]);
   const validation = validateRoom(parsedDocument.data, materialLibrary);
   const canManage = scene.role === "OWNER" || scene.role === "EDITOR";
 
@@ -40,6 +44,7 @@ export default async function SceneRoomPage({
         document: parsedDocument.data,
         materialOptions: materialLibrary.options,
         materialIds: materialLibrary.materialIds,
+        materialSpecById,
         sceneStatus: scene.status,
         validation,
       }}

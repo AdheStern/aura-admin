@@ -3,9 +3,9 @@
 
 import { notFound, redirect } from "next/navigation";
 import { Room3dEditor } from "@/features/room-3d/components/room-3d-editor";
-import { listRoomMaterialColors } from "@/features/room-3d/queries/list-room-material-colors";
 import { listSceneSpeakers } from "@/features/room-3d/queries/list-scene-speakers";
 import { listRoomMaterialOptions } from "@/features/room-editor/queries/list-room-material-options";
+import { listRoomMaterialSpecs } from "@/features/room-editor/queries/list-room-material-specs";
 import { parseRoom } from "@/features/room-editor/schemas/parse-room";
 import { validateRoom } from "@/features/room-editor/validation/validate-room";
 import { getSceneWithRole } from "@/features/scenes/queries";
@@ -31,10 +31,10 @@ export default async function SceneRoom3dPage({
   // No debería pasar nunca: las actions validan antes de persistir, igual que en la página del 2D.
   if (!parsedDocument.ok || !parsedSimulation.ok) notFound();
 
-  const [materialLibrary, materialColorsById, speakers, overlay] =
+  const [materialLibrary, materialSpecById, speakers, overlay] =
     await Promise.all([
       listRoomMaterialOptions(),
-      listRoomMaterialColors(),
+      listRoomMaterialSpecs(),
       // Del GRAFO, no del recinto: aquí las cajas se colocan, no se crean (§5.3).
       listSceneSpeakers(scene.signalFlow),
       getLatestSplGrid(scene.id),
@@ -52,12 +52,12 @@ export default async function SceneRoom3dPage({
         document: parsedDocument.data,
         materialOptions: materialLibrary.options,
         materialIds: materialLibrary.materialIds,
+        materialSpecById,
         sceneStatus: scene.status,
         validation,
       }}
       speakers={speakers}
       simulation={parsedSimulation.data}
-      materialColorsById={materialColorsById}
       overlay={overlay}
     />
   );
