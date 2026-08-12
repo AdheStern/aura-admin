@@ -30,6 +30,7 @@ export function Room3dCanvas({
   overlay: SplOverlay | null;
 }) {
   const document = useRoomStore((state) => state.document);
+  const select = useRoomStore((state) => state.select);
   const { targetM, radiusM, positionM } = frameCamera(
     document.footprint.vertices,
     document.height.h,
@@ -41,7 +42,13 @@ export function Room3dCanvas({
   const palette = canvasPalette(resolvedTheme === "dark" ? "dark" : "light");
 
   return (
-    <Canvas className="flex-1" camera={{ position: positionM, fov: 50 }}>
+    <Canvas
+      className="flex-1"
+      camera={{ position: positionM, fov: 50 }}
+      // Clic al vacío = deseleccionar, igual que en el lienzo 2D. R3F solo lo dispara si el puntero
+      // apenas se movió, así que soltar el botón tras orbitar no deselecciona nada.
+      onPointerMissed={() => select(null)}
+    >
       <ambientLight intensity={0.7} />
       <directionalLight
         position={[radiusM, radiusM * 2, radiusM]}
