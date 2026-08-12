@@ -12,21 +12,34 @@ import {
   recordJobOutcome,
 } from "@/features/simulation/queries/record-job-outcome";
 import { readSignedCallback, unauthorized } from "@/lib/engine-callback";
+import { logger } from "@/lib/logger";
 
 export async function POST(
   request: Request,
   context: RouteContext<"/api/internal/jobs/[jobId]">,
 ) {
+  const { jobId } = await context.params;
+
   const rawBody = await readSignedCallback(request);
-  if (rawBody === null) return unauthorized();
+  if (rawBody === null) {
+    // Se loggea porque una firma que no cuadra suele ser un secreto distinto en cada lado, y sin
+    // esta línea el síntoma es un job que se queda en QUEUED sin que nada explique por qué.
+    logger.warn("callback con firma inválida", { jobId });
+    return unauthorized();
+  }
 
   const outcome = parseOutcome(rawBody);
   if (!outcome) {
+    logger.warn("callback con cuerpo no reconocido", { jobId });
     return Response.json({ detail: "cuerpo no reconocido" }, { status: 400 });
   }
 
-  const { jobId } = await context.params;
   const applied = await recordJobOutcome(jobId, outcome);
+  logger.info("callback aplicado", {
+    jobId,
+    outcome: applied,
+    kind: "error" in outcome ? "error" : "result",
+  });
 
   return Response.json({ outcome: applied });
 }

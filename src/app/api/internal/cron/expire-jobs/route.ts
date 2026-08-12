@@ -8,6 +8,7 @@
 // dos veces seguidas caduca los mismos jobs y la segunda vez no encuentra ninguno.
 
 import { expireStaleJobs } from "@/features/simulation/queries/expire-stale-jobs";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
@@ -15,5 +16,10 @@ export async function GET(request: Request) {
     return Response.json({ detail: "unauthorized" }, { status: 401 });
   }
 
-  return Response.json({ expired: await expireStaleJobs() });
+  const expired = await expireStaleJobs();
+  // Solo cuando caduca algo: este cron corre cada 5 minutos y una línea por pasada en vacío sería
+  // ruido. Que caduque un job SÍ merece rastro — significa que el motor dejó de responder.
+  if (expired > 0) logger.warn("jobs caducados sin latido", { expired });
+
+  return Response.json({ expired });
 }
