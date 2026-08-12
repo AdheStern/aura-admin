@@ -20,6 +20,9 @@ const ACTIONS: Record<string, string> = {
   treat_reflections: "Tratar reflexiones",
   reduce_level: "Bajar nivel",
   parametric_eq: "EQ paramétrica",
+  // La séptima regla (SourceEqRule) corrige el espectro de una FUENTE, no el de la sala: son dos
+  // ecualizaciones distintas y llamarlas igual haría pensar que una sustituye a la otra.
+  source_eq: "EQ de fuente",
   delay_alignment: "Alinear delays",
   review_polarity: "Revisar polaridad",
   add_absorption: "Añadir absorción",
