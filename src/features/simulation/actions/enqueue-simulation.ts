@@ -15,6 +15,7 @@ import { getSceneWithRole } from "@/features/scenes/queries";
 import { sceneIdSchema } from "@/features/scenes/schemas";
 import { resolveLlmConfig } from "@/features/settings/queries/resolve-llm-config";
 import { requestHash } from "@/features/simulation/model/request-hash";
+import { safeJobError } from "@/features/simulation/model/safe-job-error";
 import { compileSceneRequest } from "@/features/simulation/queries/compile-scene-request";
 import { db } from "@/lib/db";
 import { EngineSubmitError, getEngineClient } from "@/lib/engine-client";
@@ -103,6 +104,10 @@ async function markSubmitFailed(jobId: string, error: unknown): Promise<void> {
 
   await db.simulationJob.update({
     where: { id: jobId },
-    data: { status: "FAILED", error: asJson(jobError), finishedAt: new Date() },
+    data: {
+      status: "FAILED",
+      error: asJson(safeJobError(jobError)),
+      finishedAt: new Date(),
+    },
   });
 }

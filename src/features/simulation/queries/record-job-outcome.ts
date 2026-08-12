@@ -8,6 +8,7 @@
 // cualquier 4xx como fatal y dejaría de reintentar, así que rechazar aquí sería peor que ignorar.
 
 import type { SimulationResult } from "@/contracts";
+import { safeJobError } from "@/features/simulation/model/safe-job-error";
 import { toSimResults } from "@/features/simulation/model/to-sim-results";
 import { db } from "@/lib/db";
 import type { JobError } from "@/lib/engine-client.types";
@@ -53,7 +54,11 @@ async function failJob(jobId: string, error: JobError): Promise<void> {
     where: { id: jobId },
     // La Sección 08 exige que un FAILED guarde siempre code y details: sin ellos la UI solo puede
     // decir "falló", que es lo mismo que no decir nada.
-    data: { status: "FAILED", error: asJson(error), finishedAt: new Date() },
+    data: {
+      status: "FAILED",
+      error: asJson(safeJobError(error)),
+      finishedAt: new Date(),
+    },
   });
 }
 

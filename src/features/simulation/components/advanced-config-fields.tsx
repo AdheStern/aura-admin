@@ -78,6 +78,18 @@ export function AdvancedConfigFields() {
             </Button>
           ))}
         </div>
+        {config.methods.includes("hybrid") ? (
+          // Medido en aura-engine: el híbrido cuesta del orden de un segundo POR PUNTO, y el coste
+          // es lineal. Con grilla de 1 m una sala mediana ya ronda los cinco minutos, y la fina
+          // cuadruplica los puntos. El corte de la §08 no perdona: un job sin latido durante diez
+          // minutos pasa a FAILED:TIMEOUT y el trabajo se pierde. Cuánto tarde exactamente depende
+          // de la máquina donde corra el motor, así que se avisa del riesgo sin prometer un tiempo.
+          <p className="text-xs text-muted-foreground">
+            Con el método híbrido cada punto de la grilla cuesta caro, y pasar
+            de 1 m a 0.5 m multiplica por cuatro los puntos. Una simulación que
+            supere los diez minutos sin dar señales se cancela sola.
+          </p>
+        ) : null}
       </div>
 
       <NumberField

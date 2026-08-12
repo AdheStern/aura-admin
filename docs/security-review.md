@@ -65,7 +65,23 @@ integración (`job-lifecycle.test.ts` → *"repetir el callback no duplica resul
 Añadir un nonce exigiría estado compartido entre las dos apps —justo lo que ADR-02 y ADR-03
 impiden— para defenderse de un atacante que ya está leyendo el tráfico interno.
 
-### 2.3 · Fugas de secretos en logs — **arreglado en la Sección 2 de esta fase**
+### 2.3 · La clave del usuario podía acabar en Postgres en claro — **arreglado**
+
+Lo encontró la revisión de seguridad de `aura-engine`, y su análisis de este repo es correcto:
+`SimulationJob.error` es una columna Json **en claro** y su contenido lo elige el motor — el campo
+`details` del envelope viaja como `unknown` desde el otro lado de la frontera.
+
+El camino concreto: un 400 de Pydantic incluye el `input` que falló, y para un campo AUSENTE ese
+input es el objeto padre entero, así que un `llm` sin `enabled` devolvía la API key del usuario. De
+ahí iba a `markSubmitFailed` y a la base — justo lo que el AES-256-GCM de `UserSettings` existe para
+impedir.
+
+El motor lo arregló en su lado. Aquí se añade `safeJobError()` en los **dos** puntos donde ese error
+entra a la base (el encolado y el callback), y se queda aunque el origen esté tapado: esta app no
+puede comprobar qué manda el motor, así que no lo da por bueno. Lo fija
+`__tests__/safe-job-error.test.ts` con el payload exacto del hallazgo.
+
+### 2.4 · Fugas de secretos en logs — **arreglado en la Sección 2 de esta fase**
 
 Al escribir el test del filtro aparecieron dos huecos reales:
 
@@ -112,6 +128,11 @@ variables CSS derivadas del `ChartConfig` escrito en código, no de datos de usu
 - **`UNAUTHORIZED` fuera del envelope del motor.** El 401 responde `{"detail": "unauthorized"}` en
   vez del envelope uniforme porque ninguno de los seis códigos del contrato describe un fallo de
   autenticación. Es deuda de contrato con ADR (0009), no un defecto de esta app.
+- **La grilla se corta por puntos, no por coste.** El motor midió que el híbrido cuesta del orden de
+  un segundo por punto: 400 puntos son ~5.6 min, más de la mitad del corte de 10 minutos de la §08,
+  y `SIMPLE_CONFIG` —el preset por defecto— lleva híbrido con grilla de 1 m. No es un fallo de
+  seguridad, y el arreglo de fondo (rechazar el job con `BUDGET_EXCEEDED`) cambia qué payloads se
+  admiten: eso es producto, y es del motor. Aquí se avisa donde se elige la resolución.
 - **Sin límite de intentos en `/api/internal`.** No se implementa en v1: son rutas internas y la
   firma corta cualquier petición no firmada antes de tocar la base. Cuando haya despliegue, el
   sitio de esto es la plataforma, no el código.
