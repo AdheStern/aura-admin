@@ -15,6 +15,10 @@ import {
   signEngineBody,
   TIMESTAMP_HEADER,
 } from "@/lib/engine-signature";
+import {
+  ENGINE_CANCEL_TIMEOUT_MS,
+  ENGINE_SUBMIT_TIMEOUT_MS,
+} from "@/lib/performance-budget";
 
 const jobStateSchema = z.looseObject({
   status: z.enum(["QUEUED", "RUNNING", "COMPLETED", "FAILED", "CANCELLED"]),
@@ -31,9 +35,20 @@ export function createHttpEngineClient(
       // Se serializa UNA vez y se firma sobre estos mismos bytes. Reserializar para firmar
       // cambiaría el orden de claves y la firma no cuadraría nunca.
       const url = endpoint("/v1/simulations");
-      const response = await send(url, JSON.stringify(request), secret);
+      const response = await send(
+        url,
+        JSON.stringify(request),
+        secret,
+        ENGINE_SUBMIT_TIMEOUT_MS,
+      );
 
-      if (!response) {
+      if (response === "timeout") {
+        throw new EngineSubmitError(
+          "TIMEOUT",
+          `el motor no aceptó la simulación en ${ENGINE_SUBMIT_TIMEOUT_MS / 1000} s`,
+        );
+      }
+      if (response === "unreachable") {
         throw new EngineSubmitError(
           "ENGINE_UNREACHABLE",
           `no se pudo hablar con el motor en ${url}`,
@@ -49,8 +64,12 @@ export function createHttpEngineClient(
       const url = endpoint(
         `/v1/simulations/${encodeURIComponent(jobId)}/cancel`,
       );
-      const response = await send(url, "", secret);
-      if (!response) return { ok: false, reason: "unreachable" };
+      const response = await send(url, "", secret, ENGINE_CANCEL_TIMEOUT_MS);
+      // Agotar el tiempo se cuenta como inalcanzable a propósito: no sabemos si el motor recibió
+      // la orden, y lo único que no se puede hacer es dar por parado algo que quizá sigue.
+      if (typeof response === "string") {
+        return { ok: false, reason: "unreachable" };
+      }
 
       if (!response.ok) {
         // Un 400 es "este motor no conoce el job", y entonces seguro que no lo está calculando.
@@ -70,12 +89,19 @@ export function createHttpEngineClient(
   };
 }
 
-/** null = no se pudo hablar con el motor. Un HTTP de error sí devuelve Response. */
+/**
+ * Un HTTP de error sí devuelve Response; los dos strings son fallos anteriores a tener respuesta.
+ *
+ * Se separan porque no dicen lo mismo: `unreachable` es que no hay nadie escuchando —conexión
+ * rechazada, DNS que no resuelve—, y `timeout` es que el motor aceptó la conexión y se quedó
+ * callado, que suele ser un proceso vivo pero atascado. Al usuario le cambia qué mirar.
+ */
 async function send(
   url: string,
   body: string,
   secret: string,
-): Promise<Response | null> {
+  timeoutMs: number,
+): Promise<Response | "timeout" | "unreachable"> {
   const { timestamp, signature } = signEngineBody(body, secret);
   try {
     return await fetch(url, {
@@ -87,10 +113,18 @@ async function send(
         [SIGNATURE_HEADER]: signature,
       },
       cache: "no-store",
+      // Sin esto el fetch espera para siempre: un motor que acepta la conexión y no contesta
+      // colgaría la server action hasta que la matara la plataforma, sin dejar rastro del porqué.
+      signal: AbortSignal.timeout(timeoutMs),
     });
-  } catch {
-    return null;
+  } catch (error) {
+    return isTimeout(error) ? "timeout" : "unreachable";
   }
+}
+
+/** AbortSignal.timeout aborta con un DOMException llamado TimeoutError, no con un Error propio. */
+function isTimeout(error: unknown): boolean {
+  return error instanceof Error && error.name === "TimeoutError";
 }
 
 async function toSubmitError(response: Response): Promise<EngineSubmitError> {

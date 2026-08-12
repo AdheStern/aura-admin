@@ -64,6 +64,8 @@ export type RoomStoreState = {
   insertVertexAt: (edgeIndex: number, pointM: Point2d) => void;
   setHeightM: (heightM: number) => void;
   setSurfaceMaterial: (surfaceId: string, materialId: string | null) => void;
+  /** Todos los muros a la vez, en un solo paso de historial. */
+  setWallsMaterial: (materialId: string | null) => void;
   updateObstacle: (
     id: string,
     patch: Partial<Pick<RoomObstacle, "at" | "size" | "materialId">>,

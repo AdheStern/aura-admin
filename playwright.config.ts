@@ -32,5 +32,10 @@ export default defineConfig({
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // `mock` a secas devuelve CANON-01, que no trae grillas ni recomendaciones: con él la mitad de
+    // la pantalla de resultados no existe y no habría nada que asertar. TRAMPA local: si ya tenías
+    // un `pnpm dev` levantado, Playwright lo reusa con el modo que tuviera, y los pasos de
+    // resultados fallan sin decir por qué — bájalo antes de correr el E2E.
+    env: { ENGINE_MODE: "mock-full" },
   },
 });

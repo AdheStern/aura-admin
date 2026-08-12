@@ -1,6 +1,14 @@
-// e2e/golden-path.spec.ts — el camino dorado de la Sección 11 del doc maestro: registro → proyecto
-// → escena → fuente→consola→PA→2 parlantes→simulación ("Flujo listo") → recinto rectangular con
-// zona de audiencia ("Recinto listo") → editor 3D. Se amplía cuando la Fase 4+ agregue resultados.
+// e2e/golden-path.spec.ts — el camino dorado COMPLETO de la Sección 11 del doc maestro: registro →
+// proyecto → escena → fuente→consola→PA→2 parlantes→simulación ("Flujo listo") → recinto con zona
+// de audiencia ("Recinto listo") → materiales → editor 3D → objetivo de RT60 → simular → resultados
+// → banner de desactualizado → cancelar.
+//
+// Un solo test y no cinco: montar la escena cuesta minuto y medio, y cada spec nuevo la montaría
+// otra vez para probar un paso más. Los `test.step` dan el mismo detalle al fallar.
+//
+// Corre con ENGINE_MODE=mock-full (ver playwright.config.ts). No es un atajo: el loopback firma y
+// POSTea a las mismas rutas /api/internal que usa el motor real, así que esto ejercita la firma
+// HMAC, la ingesta y las transiciones de estado igual que un despliegue.
 //
 // Las marcas/modelos de abajo vienen de prisma/seed/*.ts (sources.ts, consoles.ts, amplifiers.ts,
 // speakers.ts) — son curaduría real, no fixtures de test. Si el seed cambia esos nombres, este
@@ -12,6 +20,7 @@ const SOURCE_NAME = "Voz masculina";
 const CONSOLE_MODEL = "Midas M AIR MR18";
 const AMPLIFIER_MODEL = "Crown XLS 1502";
 const SPEAKER_MODEL = "JBL PRX418S"; // pasiva (activePowered:false) — necesita el amplificador
+const MATERIAL_NAME = "Ladrillo visto pintado";
 
 test("fuente → consola → PA → 2 parlantes → simulación → recinto deja la escena en Recinto listo", async ({
   page,
@@ -171,6 +180,23 @@ test("fuente → consola → PA → 2 parlantes → simulación → recinto deja
     await expect(page.getByText("Recinto listo")).toBeVisible();
   });
 
+  await test.step("asignar material a las seis superficies", async () => {
+    // ROOM_READY no basta para SIMULAR: se llega ahí con superficies sin material —
+    // MATERIAL_NOT_ASSIGNED es aviso, no error— y el contrato exige `materialId` en todas
+    // (ver can-simulate.ts). Sin este paso el botón "Simular" se queda deshabilitado.
+    await page.click('button[aria-label="Seleccionar / mover"]');
+
+    // Los tres campos del panel de la sala: piso, techo y —de una vez— todos los muros.
+    await pickMaterial(page, 0, MATERIAL_NAME);
+    await pickMaterial(page, 1, MATERIAL_NAME);
+    await pickMaterial(page, 2, MATERIAL_NAME);
+
+    // El validador es quien lleva la cuenta de verdad: si alguna superficie se hubiera quedado sin
+    // material, aquí seguiría diciéndolo y el botón "Simular" saldría deshabilitado más adelante.
+    await expect(page.getByText(/superficies? sin material/)).toBeHidden();
+    await expect(page.getByText("Guardado")).toBeVisible({ timeout: 10_000 });
+  });
+
   await test.step("generar el editor 3D desde el recinto listo", async () => {
     // El botón solo se habilita en ROOM_READY (Sección 08): "Recinto listo" ya lo deja disponible.
     await page.click('a:has-text("Generar 3D")');
@@ -182,7 +208,115 @@ test("fuente → consola → PA → 2 parlantes → simulación → recinto deja
     // solo se confirma que la escena 3D se monta sin romper el camino dorado.
     await expect(page.locator("canvas")).toBeVisible({ timeout: 10_000 });
   });
+
+  await test.step("elegir objetivo de RT60 y simular", async () => {
+    // Sin objetivo el contrato manda `null` y RtTargetRule no evalúa nada (ADR 0003): elegirlo es
+    // lo que hace aparecer la recomendación de tratamiento más abajo.
+    await pickRtTarget(page, "Auditorio mixto");
+
+    // Esperar al autosave NO es cosmético: el payload se compila desde lo GUARDADO, así que
+    // simular antes de que aterrice el debounce manda la configuración anterior — y los resultados
+    // salen marcados como desactualizados en cuanto el guardado llega después.
+    await expect(page.getByText("Guardado")).toBeVisible({ timeout: 10_000 });
+
+    await page.click('button:has-text("Simular")');
+    // El loopback entrega seis latidos de 500 ms antes del resultado, así que da tiempo a verlo.
+    await expect(page.getByText("Cancelar")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("Simulación completada")).toBeVisible({
+      timeout: 30_000,
+    });
+  });
+
+  await test.step("los resultados enseñan las cinco secciones", async () => {
+    await page.click('a:has-text("Ver resultados")');
+    // Por el encabezado y no por waitForURL: la página de resultados monta gráficos que dejan
+    // peticiones abiertas, así que el evento `load` que espera waitForURL puede no llegar nunca
+    // aunque el contenido ya esté delante.
+    await expect(
+      page.getByRole("heading", { name: /^Resultados ·/ }),
+    ).toBeVisible({ timeout: 30_000 });
+
+    await expect(page.getByText("Nivel medio")).toBeVisible();
+    await expect(page.getByText("RT60 (Sabine)")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Nivel en la audiencia" }),
+    ).toBeVisible();
+    await expect(page.getByText(/Reparto del nivel/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Alertas" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Detalle por banda" }),
+    ).toBeVisible();
+  });
+
+  await test.step("las recomendaciones llegan con su acción", async () => {
+    await expect(
+      page.getByRole("heading", { name: "Recomendaciones" }),
+    ).toBeVisible();
+
+    // Las dos que emite mock-full: la de cobertura trae botón porque la app sabe ejecutarla, y la
+    // de absorción no, porque describe obra fuera de la app.
+    await expect(page.getByText("Reorientar caja")).toBeVisible();
+    await expect(page.getByText("Añadir absorción")).toBeVisible();
+    await expect(page.getByText("Aplicar al 3D")).toBeVisible();
+  });
+
+  await test.step("cambiar la escena marca los resultados como viejos", async () => {
+    const resultsUrl = page.url();
+
+    await page.goBack();
+    await page.waitForURL("**/room/3d", { timeout: 30_000 });
+    // Cambiar el objetivo cambia `config`, y con él el hash del request: es exactamente lo que
+    // is-simulation-outdated compara.
+    await pickRtTarget(page, "Palabra");
+    await expect(page.getByText("Guardado")).toBeVisible({ timeout: 10_000 });
+
+    await page.goto(resultsUrl);
+    await expect(
+      page.getByText(/La escena cambió desde que se calculó/),
+    ).toBeVisible();
+  });
+
+  await test.step("una simulación se puede cancelar a mitad", async () => {
+    await page.goBack();
+    await page.waitForURL("**/room/3d", { timeout: 30_000 });
+
+    await page.click('button:has-text("Simular")');
+    await page.click('button:has-text("Cancelar")');
+
+    // El motor no manda callback al cancelar (§08): es la app quien escribe el estado final, así
+    // que si esto se quedara colgado sería que nadie lo escribió.
+    await expect(page.getByText("Simulación cancelada")).toBeVisible({
+      timeout: 30_000,
+    });
+  });
 });
+
+/** El picker de material es un Combobox con filtro por texto, no un Select: hay que teclear para
+ *  que la opción aparezca en la lista. `index` distingue piso (0) de techo (1) en el panel de la
+ *  sala; en el panel de un muro solo hay uno. */
+async function pickMaterial(
+  page: Page,
+  index: number,
+  name: string,
+): Promise<void> {
+  const input = page.getByPlaceholder("Buscar material…").nth(index);
+  await input.click();
+  await input.fill(name);
+  await page
+    .locator('[role="option"]:visible', { hasText: name })
+    .first()
+    .click();
+}
+
+/** El objetivo de RT60 vive en un Select cuyo texto es "Etiqueta · rango", así que se busca por
+ *  el nombre del preset y no por la cadena entera. */
+async function pickRtTarget(page: Page, label: string): Promise<void> {
+  await page.locator("#rt-target").click();
+  await page
+    .locator('[role="option"]:visible', { hasText: label })
+    .first()
+    .click();
+}
 
 async function addNode(page: Page, label: string): Promise<void> {
   await page.locator(`button:has-text("${label}")`).first().click();
