@@ -7,7 +7,6 @@ import { ProjectMembersList } from "@/features/projects/components/project-membe
 import { ProjectRoleBadge } from "@/features/projects/components/project-role-badge";
 import { ShareProjectDialog } from "@/features/projects/components/share-project-dialog";
 import { getProjectWithRole } from "@/features/projects/queries";
-import { CreateSceneDialog } from "@/features/scenes/components/create-scene-dialog";
 import { SceneList } from "@/features/scenes/components/scene-list";
 import { listScenesForProject } from "@/features/scenes/queries";
 import { getActiveUser } from "@/lib/session";
@@ -76,12 +75,7 @@ export default async function ProjectDetailPage({
       ) : null}
 
       <section className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="font-heading text-lg font-medium">Escenas</h2>
-          {canManageScenes ? (
-            <CreateSceneDialog projectId={project.id} />
-          ) : null}
-        </div>
+        <h2 className="font-heading text-lg font-medium">Escenas</h2>
         <SceneList
           scenes={scenes}
           projectId={project.id}
