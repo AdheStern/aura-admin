@@ -1,5 +1,7 @@
 // src/features/scenes/components/scene-list.tsx
 
+import { LayersIcon } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
 import { SceneCard } from "@/features/scenes/components/scene-card";
 import type { SceneListItem } from "@/features/scenes/types";
 
@@ -14,9 +16,15 @@ export function SceneList({
 }) {
   if (scenes.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">
-        Todavía no hay escenas en este proyecto.
-      </p>
+      <EmptyState
+        icon={LayersIcon}
+        title="Este proyecto no tiene escenas"
+        hint={
+          canManage
+            ? "Una escena es un montaje concreto: su sistema de sonido, su recinto y sus simulaciones. Crea la primera con el botón de arriba."
+            : "Quien administre el proyecto puede crear la primera."
+        }
+      />
     );
   }
 
