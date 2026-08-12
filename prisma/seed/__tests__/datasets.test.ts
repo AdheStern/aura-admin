@@ -11,6 +11,7 @@ import { sourceSpecSchema } from "@/contracts/source-spec.schema";
 import { speakerSpecSchema } from "@/contracts/speaker-spec.schema";
 import { AMPLIFIERS } from "../amplifiers";
 import { CONSOLES } from "../consoles";
+import { directivityIndexDb } from "../derive";
 import { MATERIAL_SPECS } from "../materials";
 import { MICROPHONES } from "../microphones";
 import { SOURCES } from "../sources";
@@ -158,6 +159,61 @@ describe("Seed: reglas del dominio", () => {
       [...kinds].some((k) => k !== "processor"),
       "falta algún amplificador con potencia",
     ).toBe(true);
+  });
+
+  // El motor deriva Q del DI para las formulas estadisticas. Con el diccionario vacio no calcula:
+  // lanza y el job termina FAILED. Los quince parlantes entraron asi hasta que se probo el ciclo
+  // contra el motor real, y ningun test lo veia porque el mock no ejecuta fisica.
+  it("todo parlante publica DI en las seis bandas", () => {
+    for (const { brand, model, spec } of SPEAKERS) {
+      const di = spec.directivity.diByBand;
+      expect(Object.keys(di).length, `${brand} ${model}`).toBe(6);
+    }
+  });
+
+  it("ningun DI es negativo: en campo libre Q >= 1", () => {
+    // La formula Q = 41253/(H*V) sobre la cobertura 360x360 de un subwoofer daria -4.97 dB, que
+    // es fisicamente imposible. El tope de derive.ts es lo que lo impide.
+    for (const { brand, model, spec } of SPEAKERS) {
+      for (const [band, value] of Object.entries(spec.directivity.diByBand)) {
+        expect(value, `${brand} ${model} @ ${band} Hz`).toBeGreaterThanOrEqual(
+          0,
+        );
+      }
+    }
+  });
+
+  it("un subwoofer es omnidireccional en todas las bandas", () => {
+    for (const { brand, model, spec } of SPEAKERS) {
+      if (spec.kind !== "subwoofer") continue;
+      for (const [band, value] of Object.entries(spec.directivity.diByBand)) {
+        expect(value, `${brand} ${model} @ ${band} Hz`).toBe(0);
+      }
+    }
+  });
+
+  // El ancla de la derivacion. La PRX812 es la unica ficha del catalogo que publica el DI como
+  // cifra (10.2 dB), asi que es el unico contraste posible entre lo que dice el fabricante y lo
+  // que da la formula sobre su cobertura. Si se transcriben mas, este test los cubre solos.
+  it("la formula reproduce el DI publicado dentro de 1 dB", () => {
+    const TOLERANCE_DB = 1;
+    const published = SPEAKERS.filter(({ spec }) =>
+      String(spec.dataSource).includes("DI publicado"),
+    );
+    expect(published.length, "el ancla desaparecio del seed").toBeGreaterThan(
+      0,
+    );
+
+    for (const { brand, model, spec } of published) {
+      const { hDeg, vDeg } = spec.directivity.nominalCoverage;
+      const derived = directivityIndexDb(hDeg, vDeg);
+      const declared = spec.directivity.diByBand["1000"];
+      expect(declared, `${brand} ${model}`).toBeDefined();
+      expect(
+        Math.abs(derived - (declared as number)),
+        `${brand} ${model}: derivado ${derived} vs publicado ${declared}`,
+      ).toBeLessThanOrEqual(TOLERANCE_DB);
+    }
   });
 
   it("toda fuente declara un rango de fundamentales creciente", () => {

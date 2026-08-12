@@ -81,6 +81,78 @@ export function continuousFromPeakSpl(peakDb: number): number {
   return Math.round((peakDb - 3) * 10) / 10;
 }
 
+// ---------------------------------------------------------------------------------------------
+// Índice de directividad por banda
+// ---------------------------------------------------------------------------------------------
+// El motor lo necesita para derivar Q en las fórmulas estadísticas (Lw, distancia crítica). Sin él
+// NO calcula: `partial_by_band_at` recibe un diccionario vacío y lanza. Ninguna ficha del catálogo
+// lo traía, así que toda simulación con un parlante real fallaba.
+//
+// FÍSICA — dos cosas que la fórmula sola no dice:
+//
+//   1. `Q = 41253/(H°·V°)` supone un lóbulo rectangular, y por debajo de 1 no significa nada: en
+//      campo libre un radiador no concentra MENOS que una fuente omnidireccional, así que Q ≥ 1 y
+//      DI ≥ 0. Los subwoofers llevan 360°×360° como marcador de "radia en todas direcciones" y la
+//      fórmula sobre eso daría −4.97 dB, que es imposible.
+//   2. El DI de una caja NO es plano con la frecuencia. Por debajo de donde el woofer empieza a
+//      dirigir —f ≈ c/(π·D), directividad de pistón en ka ≈ 1— la caja es casi omnidireccional.
+//      Publicar el DI nominal a 125 Hz inflaría el campo directo en graves y encogería la
+//      distancia crítica justo donde más manda la sala.
+//
+// LIMITACIÓN: el corte es un escalón y la transición real es gradual. Con seis bandas de octava no
+// hay resolución para más, y darle una forma exigiría una fuente que no tenemos.
+
+/** 4π estereorradianes expresados en grados cuadrados. */
+const SPHERE_SQUARE_DEGREES = 41253;
+
+/** Velocidad del sonido a 20 °C, la temperatura de referencia del resto del seed. */
+const SOUND_SPEED_MS = 343;
+
+const INCH_M = 0.0254;
+
+/**
+ * Frecuencia a partir de la cual el woofer controla la directividad, leída de `transducers.lf`.
+ * null cuando la ficha no describe un diámetro ("racetrack"): entonces no se recorta nada.
+ */
+function directivityControlHz(lf: string): number | null {
+  // "12in" · "2x10in" — manda el diámetro de UN transductor: es lo que fija la longitud de onda a
+  // la que empieza a dirigir, no cuántos haya.
+  const diameterIn = /(\d+(?:\.\d+)?)in$/.exec(lf);
+  if (!diameterIn) return null;
+  return SOUND_SPEED_MS / (Math.PI * Number(diameterIn[1]) * INCH_M);
+}
+
+/** DI nominal desde la cobertura rectangular publicada, con el suelo físico en 0 dB. */
+export function directivityIndexDb(hDeg: number, vDeg: number): number {
+  const q = Math.max(1, SPHERE_SQUARE_DEGREES / (hDeg * vDeg));
+  return Math.round(10 * Math.log10(q) * 10) / 10;
+}
+
+export function diByBand(input: {
+  coverage: { hDeg: number; vDeg: number };
+  lf: string;
+  /** Un subwoofer radia igual en todas direcciones: DI = 0 dB por definición, no derivado. */
+  omnidirectional: boolean;
+  /** DI nominal de la ficha, cuando el fabricante lo publica. Manda sobre lo derivado. */
+  publishedDb?: number;
+}): Record<OctaveBandKey, number> {
+  const bandsAt = (value: (band: OctaveBandKey) => number) =>
+    Object.fromEntries(
+      OCTAVE_BAND_KEYS.map((band) => [band, value(band)]),
+    ) as Record<OctaveBandKey, number>;
+
+  if (input.omnidirectional) return bandsAt(() => 0);
+
+  const nominalDb =
+    input.publishedDb ??
+    directivityIndexDb(input.coverage.hDeg, input.coverage.vDeg);
+  const controlHz = directivityControlHz(input.lf);
+
+  return bandsAt((band) =>
+    controlHz !== null && Number(band) < controlHz ? 0 : nominalDb,
+  );
+}
+
 /**
  * NRC según la definición del doc maestro (Sección 4.2): promedio de 250–2000 Hz redondeado
  * al múltiplo de 0.05 más cercano. Se calcula siempre — nunca se transcribe a mano.

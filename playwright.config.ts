@@ -23,7 +23,9 @@ export default defineConfig({
   // entera: con 120 s iba justo al límite y fallaba por lo más lento de cada corrida, que no era
   // siempre lo mismo. Un techo holgado no esconde nada —un cuelgue de verdad no acaba nunca— y sí
   // evita un test que se cae por el compilado en frío de una ruta.
-  timeout: 240_000,
+  // Contra el motor real el camino dorado espera una simulación de verdad —minutos, no segundos—
+  // así que el techo del test tiene que dejarle sitio a eso más el resto de pasos.
+  timeout: process.env.ENGINE_MODE === "http" ? 900_000 : 240_000,
   use: {
     baseURL: "http://localhost:3000",
     trace: "retain-on-failure",

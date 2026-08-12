@@ -22,6 +22,24 @@ const AMPLIFIER_MODEL = "Crown XLS 1502";
 const SPEAKER_MODEL = "JBL PRX418S"; // pasiva (activePowered:false) — necesita el amplificador
 const MATERIAL_NAME = "Ladrillo visto pintado";
 
+// Contra el motor REAL esto es una simulación de verdad, no un loopback: el preset simple lleva
+// híbrido, y medido sobre esta misma sala —57 m², ladrillo por todas partes— tarda del orden de
+// minutos. El coste no lo manda la grilla (14 puntos) sino lo viva que es la sala: el trazado de
+// rayos calcula hasta que la energía decae, y con α ≈ 0.02 eso es una cola larguísima.
+//
+// El techo se queda por debajo del corte de 10 minutos de la Sección 08: si la simulación tarda
+// más que eso, el cron la mata y el test debe fallar, no esperar más.
+const RESULT_TIMEOUT_MS = process.env.ENGINE_MODE === "http" ? 540_000 : 30_000;
+// Ir del editor 3D a resultados no es una navegación cualquiera: al terminar el job,
+// use-job-progress pide un router.refresh() de esa ruta —la más pesada de la app, con el lienzo
+// WebGL montado— y este clic espera a que aquello se asiente. Con 30 s la corrida en mock salía
+// intermitente, que es la peor clase de test: pasa al reintentar y nadie mira por qué.
+// El margen no esconde un cuelgue —un cuelgue no termina nunca— sino que reconoce una transición
+// que es lenta de verdad. Contra el motor real hace falta más porque el refresco llega después de
+// minutos de espera, con la pestaña ya cargada de estado.
+const NAVIGATION_TIMEOUT_MS =
+  process.env.ENGINE_MODE === "http" ? 120_000 : 60_000;
+
 test("fuente → consola → PA → 2 parlantes → simulación → recinto deja la escena en Recinto listo", async ({
   page,
 }) => {
@@ -223,7 +241,7 @@ test("fuente → consola → PA → 2 parlantes → simulación → recinto deja
     // El loopback entrega seis latidos de 500 ms antes del resultado, así que da tiempo a verlo.
     await expect(page.getByText("Cancelar")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText("Simulación completada")).toBeVisible({
-      timeout: 30_000,
+      timeout: RESULT_TIMEOUT_MS,
     });
   });
 
@@ -232,9 +250,13 @@ test("fuente → consola → PA → 2 parlantes → simulación → recinto deja
     // Por el encabezado y no por waitForURL: la página de resultados monta gráficos que dejan
     // peticiones abiertas, así que el evento `load` que espera waitForURL puede no llegar nunca
     // aunque el contenido ya esté delante.
+    //
+    // El margen extra contra el motor real no es por la página —cargada sola tarda 3.7 s— sino por
+    // lo que la precede: al terminar el job, use-job-progress pide un router.refresh() del editor
+    // 3D, que es la ruta más pesada de la app, y esta navegación espera a que aquello se asiente.
     await expect(
       page.getByRole("heading", { name: /^Resultados ·/ }),
-    ).toBeVisible({ timeout: 30_000 });
+    ).toBeVisible({ timeout: NAVIGATION_TIMEOUT_MS });
 
     // El veredicto es lo primero que se lee, y es lo unico que responde a "esta bien la sala".
     await expect(page.getByText(/^La sala /)).toBeVisible();
@@ -254,6 +276,16 @@ test("fuente → consola → PA → 2 parlantes → simulación → recinto deja
     await expect(
       page.getByRole("heading", { name: "Recomendaciones" }),
     ).toBeVisible();
+
+    // Con el motor REAL no se puede exigir una recomendación concreta: cuáles disparan depende de
+    // la sala. En la del camino dorado la cobertura sale uniforme de verdad —σ = 1.5 dB, por debajo
+    // del umbral de 3— así que CoverageGapRule NO emite nada, y exigir "Reorientar caja" seria
+    // pedirle al motor que se equivoque. Se comprueba que llegó ALGO con su etiqueta traducida.
+    if (process.env.ENGINE_MODE === "http") {
+      // Por el texto de la insignia de prioridad, que toda tarjeta lleva sea cual sea su regla.
+      await expect(page.getByText(/^Prioridad \d/).first()).toBeVisible();
+      return;
+    }
 
     // Las dos que emite mock-full: la de cobertura trae botón porque la app sabe ejecutarla, y la
     // de absorción no, porque describe obra fuera de la app.
