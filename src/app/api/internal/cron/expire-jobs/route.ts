@@ -8,11 +8,13 @@
 // dos veces seguidas caduca los mismos jobs y la segunda vez no encuentra ninguno.
 
 import { expireStaleJobs } from "@/features/simulation/queries/expire-stale-jobs";
+import { secretsMatch } from "@/lib/crypto";
 import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
-  if (!secret || request.headers.get("Authorization") !== `Bearer ${secret}`) {
+  // Sin CRON_SECRET no entra nadie: fallar cerrado es lo correcto en local, donde no hay cron.
+  if (!secret || !isAuthorized(request, secret)) {
     return Response.json({ detail: "unauthorized" }, { status: 401 });
   }
 
@@ -22,4 +24,16 @@ export async function GET(request: Request) {
   if (expired > 0) logger.warn("jobs caducados sin latido", { expired });
 
   return Response.json({ expired });
+}
+
+/**
+ * Comparación en tiempo constante, igual que la de la firma HMAC.
+ *
+ * Con `!==` el tiempo de respuesta depende de cuántos caracteres iniciales acertó quien prueba, y
+ * esta ruta es pública —cuelga fuera del matcher de proxy.ts porque la llama un programador, no una
+ * persona—, así que se puede sondear tantas veces como haga falta.
+ */
+function isAuthorized(request: Request, secret: string): boolean {
+  const header = request.headers.get("Authorization");
+  return header !== null && secretsMatch(header, `Bearer ${secret}`);
 }
