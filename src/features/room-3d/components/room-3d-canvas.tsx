@@ -6,11 +6,15 @@
 
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
+import { useTheme } from "next-themes";
+import { FloorGrid } from "@/features/room-3d/components/floor-grid";
 import { RoomMesh } from "@/features/room-3d/components/room-mesh";
 import { SpeakerRig } from "@/features/room-3d/components/speaker-rig";
 import { SplOverlayMesh } from "@/features/room-3d/components/spl-overlay-mesh";
+import { ZoneMeshes } from "@/features/room-3d/components/zone-meshes";
 import { frameCamera } from "@/features/room-3d/model/frame-camera";
 import type { MaterialNrcById } from "@/features/room-3d/queries/list-room-material-colors";
+import { canvasPalette } from "@/features/room-editor/model/canvas-palette";
 import { useRoomStore } from "@/features/room-editor/store/room-store-provider";
 import type { SplOverlay } from "@/features/simulation/queries/get-latest-spl-grid";
 
@@ -31,6 +35,11 @@ export function Room3dCanvas({
     document.height.h,
   );
 
+  // El tema se resuelve AQUÍ, fuera del árbol de R3F, y la paleta baja como prop: dentro del lienzo
+  // se dibuja con three.js, que no lee custom properties CSS ni clases de Tailwind.
+  const { resolvedTheme } = useTheme();
+  const palette = canvasPalette(resolvedTheme === "dark" ? "dark" : "light");
+
   return (
     <Canvas className="flex-1" camera={{ position: positionM, fov: 50 }}>
       <ambientLight intensity={0.7} />
@@ -38,7 +47,10 @@ export function Room3dCanvas({
         position={[radiusM, radiusM * 2, radiusM]}
         intensity={0.9}
       />
+      <FloorGrid palette={palette} radiusM={radiusM} />
       <RoomMesh materialColorsById={materialColorsById} />
+      {/* Después del recinto: son translúcidas y tienen que mezclarse con lo que ya se pintó. */}
+      <ZoneMeshes palette={palette} />
       {overlay ? <SplOverlayMesh overlay={overlay} /> : null}
       <SpeakerRig />
       {/* makeDefault es lo que deja que TransformControls congele el orbitar mientras se arrastra

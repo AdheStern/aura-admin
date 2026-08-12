@@ -42,13 +42,22 @@ describe("deriveNrc", () => {
 });
 
 describe("nrcColorHex", () => {
-  it("gris neutro cuando no hay material asignado", () => {
-    expect(nrcColorHex(null)).toBe("#9ca3af");
+  it("gris claro, fuera de la rampa, cuando no hay material asignado", () => {
+    expect(nrcColorHex(null)).toBe("#e4e4e7");
   });
 
-  it("rojo puro en NRC 0 y verde puro en NRC 1", () => {
-    expect(nrcColorHex(0)).toBe("#ef4444");
-    expect(nrcColorHex(1)).toBe("#22c55e");
+  it("gris medio en NRC 0 y gris oscuro en NRC 1", () => {
+    expect(nrcColorHex(0)).toBe("#a1a1aa");
+    expect(nrcColorHex(1)).toBe("#3f3f46");
+  });
+
+  it("toda la rampa es gris: nada de color compitiendo con las zonas", () => {
+    for (const nrc of [0, 0.1, 0.35, 0.5, 0.75, 1]) {
+      const [r, g, b] = [1, 3, 5].map((at) =>
+        Number.parseInt(nrcColorHex(nrc).slice(at, at + 2), 16),
+      );
+      expect(Math.max(r, g, b) - Math.min(r, g, b)).toBeLessThan(16);
+    }
   });
 
   it("recorta valores fuera de [0, 1]", () => {
