@@ -90,6 +90,7 @@ async function Results({
         document={detail.document}
         resolutionM={detail.resolutionM}
         simulationId={detail.simulationId}
+        userId={userId}
         canApply={scene?.role === "OWNER" || scene?.role === "EDITOR"}
         rtTargetS={detail.rtTargetS}
         summation={detail.summation}

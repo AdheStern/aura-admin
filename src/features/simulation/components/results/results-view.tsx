@@ -11,6 +11,7 @@ import type { RoomDocument } from "@/features/room-editor/schemas/room-document"
 import { AlertsPanel } from "@/features/simulation/components/results/alerts-panel";
 import { BandChart } from "@/features/simulation/components/results/band-chart";
 import { ChecksPanel } from "@/features/simulation/components/results/checks-panel";
+import { MixAdvicePanel } from "@/features/simulation/components/results/mix-advice-panel";
 import { RecommendationCard } from "@/features/simulation/components/results/recommendation-card";
 import { ResultsVerdict } from "@/features/simulation/components/results/results-verdict";
 import { SplHistogram } from "@/features/simulation/components/results/spl-histogram";
@@ -27,6 +28,7 @@ export async function ResultsView({
   document,
   resolutionM,
   simulationId,
+  userId,
   canApply,
   rtTargetS,
   summation,
@@ -35,6 +37,8 @@ export async function ResultsView({
   document: RoomDocument | null;
   resolutionM: number;
   simulationId: string;
+  /** Para el asesor de mezcla: la clave del LLM es de cada usuario, no del proyecto. */
+  userId: string;
   canApply: boolean;
   rtTargetS: readonly [number, number] | null;
   summation: "energy" | "complex" | null;
@@ -124,6 +128,9 @@ export async function ResultsView({
       </section>
 
       <ValidityNotes meta={view.meta} />
+
+      {/* Lo último y aparte: de aquí abajo ya no hay física, hay criterio de un modelo. */}
+      <MixAdvicePanel simulationId={simulationId} userId={userId} />
     </div>
   );
 }

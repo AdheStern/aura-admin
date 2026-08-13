@@ -250,7 +250,8 @@ model SimResult {
   id           String     @id @default(cuid())
   simulationId String
   simulation   Simulation @relation(fields: [simulationId], references: [id], onDelete: Cascade)
-  kind         String // ResultKind: SUMMARY|SPL_GRID|RT_BANDS|CLARITY_GRID|RECOMMENDATIONS|ALERTS
+  // MIX_ADVICE no viene del motor: lo escribe la app (asesor de mezcla por instrumento).
+  kind         String // ResultKind: SUMMARY|SPL_GRID|RT_BANDS|CLARITY_GRID|RECOMMENDATIONS|ALERTS|MIX_ADVICE
   summary      Json? // métricas agregadas consultables
   payload      Json? // datos densos (grillas); el doc manda a storagePath si pasa de 1 MB
   storagePath  String?
