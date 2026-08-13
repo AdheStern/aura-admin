@@ -13,13 +13,28 @@
 import { useId } from "react";
 import type { SimulationGrid } from "@/contracts";
 import type { RoomDocument } from "@/features/room-editor/schemas/room-document";
+import {
+  HorizontalRuler,
+  VerticalRuler,
+} from "@/features/simulation/components/results/map-ruler";
 import { SplLegend } from "@/features/simulation/components/results/spl-legend";
+import {
+  formatMetres,
+  rulerTicks,
+} from "@/features/simulation/model/map-ruler";
 import { splColor } from "@/features/simulation/model/spl-scale";
 
 /** Un metro de aire alrededor para que la planta no toque el borde del cuadro. */
 const PADDING_M = 1;
 
 const MAX_HEIGHT_REM = 28;
+
+/**
+ * Canal de la regla vertical. Va aparte del mapa para no comerle ancho al dibujo, y con sitio de
+ * sobra para tres cifras: en una nave las marcas llegan a "100" y una etiqueta recortada por el
+ * borde es peor que no ponerla.
+ */
+const RULER_REM = 2.25;
 
 export function SplMap({
   grid,
@@ -41,15 +56,23 @@ export function SplMap({
 
   const outline = document?.footprint.vertices ?? [];
 
+  const size = extent(grid.points, document);
+
   return (
     <div className="flex flex-col gap-3">
       {/* El ancho se limita a lo que ocupa la planta con la altura máxima: sin esto el SVG se
           estira a todo el contenedor, encaja el dibujo en el centro y el borde queda rodeando dos
-          franjas vacías que parecen parte del mapa. */}
+          franjas vacías que parecen parte del mapa. La regla suma su propio canal. */}
       <div
-        className="w-full"
-        style={{ maxWidth: `${MAX_HEIGHT_REM * (box.width / box.height)}rem` }}
+        className="grid w-full"
+        style={{
+          maxWidth: `${MAX_HEIGHT_REM * (box.width / box.height) + RULER_REM}rem`,
+          gridTemplateColumns: `${RULER_REM}rem 1fr`,
+          gridTemplateRows: "1fr auto",
+        }}
       >
+        <VerticalRuler ticks={rulerTicks(box.minY, box.height)} />
+
         <svg
           viewBox={`${box.minX} ${box.minY} ${box.width} ${box.height}`}
           className="h-auto w-full rounded-md border bg-card"
@@ -102,11 +125,48 @@ export function SplMap({
             />
           ) : null}
         </svg>
+
+        {/* Esquina muerta bajo la regla vertical: mantiene alineada la horizontal con el mapa. */}
+        <div />
+        <HorizontalRuler ticks={rulerTicks(box.minX, box.width)} />
       </div>
+
+      <p className="text-xs text-muted-foreground">
+        {size
+          ? `${size.label} ${formatMetres(size.widthM)} × ${formatMetres(size.depthM)} m · cada celda mide ${resolutionM} m de lado. Las reglas están en metros.`
+          : `Cada celda mide ${resolutionM} m de lado. Las reglas están en metros.`}
+      </p>
 
       <SplLegend unit={unit} />
     </div>
   );
+}
+
+type Extent = { widthM: number; depthM: number; label: string };
+
+/**
+ * Lo que mide lo dibujado. Del recinto cuando lo hay; si no, de la nube de puntos, y entonces se
+ * dice que es el área medida y no la sala: con una grilla que no llega a las paredes, llamarlo
+ * "planta" daría por buena una medida que nadie tomó.
+ *
+ * En plantas que no son rectangulares esto es la envolvente, no la superficie.
+ */
+function extent(
+  points: readonly (readonly number[])[],
+  document: RoomDocument | null,
+): Extent | null {
+  const vertices = document?.footprint.vertices ?? [];
+  const source = vertices.length > 2 ? vertices : points;
+  if (source.length === 0) return null;
+
+  const xs = source.map((p) => p[0]);
+  const ys = source.map((p) => p[1]);
+
+  return {
+    widthM: Number((Math.max(...xs) - Math.min(...xs)).toFixed(1)),
+    depthM: Number((Math.max(...ys) - Math.min(...ys)).toFixed(1)),
+    label: vertices.length > 2 ? "Planta de" : "Área medida de",
+  };
 }
 
 type Box = { minX: number; minY: number; width: number; height: number };
