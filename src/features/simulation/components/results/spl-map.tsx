@@ -71,7 +71,18 @@ export function SplMap({
           gridTemplateRows: "1fr auto",
         }}
       >
-        <VerticalRuler ticks={rulerTicks(box.minY, box.height)} />
+        <VerticalRuler
+          ticks={
+            size
+              ? rulerTicks({
+                  originM: size.minY,
+                  lengthM: size.depthM,
+                  drawnMinM: box.minY,
+                  drawnLengthM: box.height,
+                })
+              : []
+          }
+        />
 
         <svg
           viewBox={`${box.minX} ${box.minY} ${box.width} ${box.height}`}
@@ -128,7 +139,18 @@ export function SplMap({
 
         {/* Esquina muerta bajo la regla vertical: mantiene alineada la horizontal con el mapa. */}
         <div />
-        <HorizontalRuler ticks={rulerTicks(box.minX, box.width)} />
+        <HorizontalRuler
+          ticks={
+            size
+              ? rulerTicks({
+                  originM: size.minX,
+                  lengthM: size.widthM,
+                  drawnMinM: box.minX,
+                  drawnLengthM: box.width,
+                })
+              : []
+          }
+        />
       </div>
 
       <p className="text-xs text-muted-foreground">
@@ -142,12 +164,19 @@ export function SplMap({
   );
 }
 
-type Extent = { widthM: number; depthM: number; label: string };
+type Extent = {
+  /** Esquina del recinto: el cero de la regla, que no tiene por qué ser el del mundo. */
+  minX: number;
+  minY: number;
+  widthM: number;
+  depthM: number;
+  label: string;
+};
 
 /**
- * Lo que mide lo dibujado. Del recinto cuando lo hay; si no, de la nube de puntos, y entonces se
- * dice que es el área medida y no la sala: con una grilla que no llega a las paredes, llamarlo
- * "planta" daría por buena una medida que nadie tomó.
+ * Lo que mide el recinto y dónde empieza. Del contorno cuando lo hay; si no, de la nube de puntos,
+ * y entonces se dice que es el área medida y no la sala: con una grilla que no llega a las paredes,
+ * llamarlo "planta" daría por buena una medida que nadie tomó.
  *
  * En plantas que no son rectangulares esto es la envolvente, no la superficie.
  */
@@ -161,10 +190,14 @@ function extent(
 
   const xs = source.map((p) => p[0]);
   const ys = source.map((p) => p[1]);
+  const minX = Math.min(...xs);
+  const minY = Math.min(...ys);
 
   return {
-    widthM: Number((Math.max(...xs) - Math.min(...xs)).toFixed(1)),
-    depthM: Number((Math.max(...ys) - Math.min(...ys)).toFixed(1)),
+    minX,
+    minY,
+    widthM: Number((Math.max(...xs) - minX).toFixed(1)),
+    depthM: Number((Math.max(...ys) - minY).toFixed(1)),
     label: vertices.length > 2 ? "Planta de" : "Área medida de",
   };
 }
