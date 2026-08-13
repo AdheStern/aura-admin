@@ -21,15 +21,26 @@ const TIMEOUT_MS = 120_000;
 export type LlmConfig = { provider: LlmProvider; apiKey: string };
 
 export type LlmCompletion =
-  | { ok: true; text: string }
+  | { ok: true; text: string; finishReason: string | null }
   | { ok: false; message: string };
 
-/** Manda el prompt y devuelve el texto crudo. Validar que sea el JSON esperado es de quien llama. */
+/**
+ * Manda el prompt y devuelve el texto crudo. Validar que sea el JSON esperado es de quien llama.
+ *
+ * `jsonSchema` describe la estructura que se espera de vuelta. No es adorno: sin él, el modo JSON
+ * de Google corta la respuesta a media llave de vez en cuando (ver mix-advice-json-schema.ts).
+ */
 export async function complete(
   config: LlmConfig,
   prompt: string,
+  jsonSchema?: Record<string, unknown>,
 ): Promise<LlmCompletion> {
-  const request = buildRequest(config.provider, config.apiKey, prompt);
+  const request = buildRequest(
+    config.provider,
+    config.apiKey,
+    prompt,
+    jsonSchema,
+  );
 
   let response: Response;
   try {
@@ -58,15 +69,18 @@ export async function complete(
     return { ok: false, message: "El proveedor devolvió algo que no es JSON." };
   }
 
-  const text = request.readText(parsed);
-  return text
-    ? { ok: true, text }
-    : {
-        ok: false,
-        message:
-          "El proveedor respondió sin texto. Suele ser que el modelo agotó su presupuesto de " +
-          "salida razonando antes de contestar.",
-      };
+  const { text, finishReason } = request.readText(parsed);
+  if (text) return { ok: true, text, finishReason };
+
+  return {
+    ok: false,
+    message: `El proveedor respondió sin texto${reasonSuffix(finishReason)}. Suele ser que el modelo agotó su presupuesto de salida razonando antes de contestar.`,
+  };
+}
+
+/** El motivo de parada convertido en algo que se pueda leer en pantalla. */
+export function reasonSuffix(finishReason: string | null): string {
+  return finishReason ? ` (motivo: ${finishReason})` : "";
 }
 
 function transportMessage(error: unknown): string {

@@ -33,21 +33,33 @@ const MODELS: Record<LlmProvider, string> = {
  */
 const MAX_OUTPUT_TOKENS = 8192;
 
+export type LlmReply = {
+  text: string | null;
+  /** Por qué paró el modelo. Se arrastra hasta el error: sin él, "no es JSON" no dice nada. */
+  finishReason: string | null;
+};
+
 export type LlmRequest = {
   url: string;
   headers: Record<string, string>;
   body: unknown;
-  /** Saca el texto del cuerpo ya parseado, o null si la respuesta no trae ninguno. */
-  readText: (body: unknown) => string | null;
+  readText: (body: unknown) => LlmReply;
 };
 
+/**
+ * `jsonSchema` es la ESTRUCTURA que debe tener la respuesta. Solo Google lo usa hoy: es el único
+ * de los tres cuyo modo JSON sin esquema corta respuestas a media llave (ver
+ * mix-advice-json-schema.ts). Los otros dos se quedan con la instrucción del prompt, que es lo que
+ * venían haciendo — cambiarles el modo sin poder probarlo contra su API sería peor que dejarlos.
+ */
 export function buildRequest(
   provider: LlmProvider,
   apiKey: string,
   prompt: string,
+  jsonSchema?: Record<string, unknown>,
 ): LlmRequest {
   if (provider === "anthropic") return anthropic(apiKey, prompt);
-  if (provider === "google") return google(apiKey, prompt);
+  if (provider === "google") return google(apiKey, prompt, jsonSchema);
   return deepseek(apiKey, prompt);
 }
 
@@ -59,6 +71,7 @@ const anthropicReply = z.object({
   content: z.array(
     z.looseObject({ type: z.string(), text: z.string().optional() }),
   ),
+  stop_reason: z.string().nullable().optional(),
 });
 
 function anthropic(apiKey: string, prompt: string): LlmRequest {
@@ -76,10 +89,13 @@ function anthropic(apiKey: string, prompt: string): LlmRequest {
     },
     readText: (raw) => {
       const parsed = anthropicReply.safeParse(raw);
-      if (!parsed.success) return null;
+      if (!parsed.success) return { text: null, finishReason: null };
       // El primer bloque de tipo `text`, no el primer bloque: delante puede ir el `thinking`.
       const block = parsed.data.content.find((item) => item.type === "text");
-      return block?.text ?? null;
+      return {
+        text: block?.text ?? null,
+        finishReason: parsed.data.stop_reason ?? null,
+      };
     },
   };
 }
@@ -88,6 +104,7 @@ const googleReply = z.object({
   candidates: z
     .array(
       z.looseObject({
+        finishReason: z.string().optional(),
         content: z
           .looseObject({
             parts: z
@@ -105,29 +122,38 @@ const googleReply = z.object({
     .min(1),
 });
 
-function google(apiKey: string, prompt: string): LlmRequest {
+function google(
+  apiKey: string,
+  prompt: string,
+  jsonSchema?: Record<string, unknown>,
+): LlmRequest {
   return {
     url: `https://generativelanguage.googleapis.com/v1beta/models/${MODELS.google}:generateContent`,
     headers: { "x-goog-api-key": apiKey, "content-type": "application/json" },
     body: {
       contents: [{ parts: [{ text: prompt }] }],
-      // Gemini sabe forzar JSON sin esquema; con esquema habría que traducir el zod y podarle los
-      // rangos que no admite, y `parseMixAdvice` ya valida eso mejor de lo que lo haría el proveedor.
+      // El mime-type solo no basta: sin `responseSchema` la respuesta se corta a media llave una
+      // de cada tres veces, informando STOP. El campo es `responseSchema`, no `responseJsonSchema`.
       generationConfig: {
         responseMimeType: "application/json",
         maxOutputTokens: MAX_OUTPUT_TOKENS,
+        ...(jsonSchema ? { responseSchema: jsonSchema } : {}),
       },
     },
     readText: (raw) => {
       const parsed = googleReply.safeParse(raw);
-      if (!parsed.success) return null;
+      if (!parsed.success) return { text: null, finishReason: null };
 
-      const parts = parsed.data.candidates[0]?.content?.parts ?? [];
+      const candidate = parsed.data.candidates[0];
+      const parts = candidate?.content?.parts ?? [];
       const text = parts
         .filter((part) => part.thought !== true && part.text)
         .map((part) => part.text)
         .join("");
-      return text || null;
+      return {
+        text: text || null,
+        finishReason: candidate?.finishReason ?? null,
+      };
     },
   };
 }
@@ -137,6 +163,7 @@ const deepseekReply = z.object({
     .array(
       z.looseObject({
         message: z.looseObject({ content: z.string().nullable().optional() }),
+        finish_reason: z.string().nullable().optional(),
       }),
     )
     .min(1),
@@ -158,8 +185,13 @@ function deepseek(apiKey: string, prompt: string): LlmRequest {
     },
     readText: (raw) => {
       const parsed = deepseekReply.safeParse(raw);
-      if (!parsed.success) return null;
-      return parsed.data.choices[0]?.message.content ?? null;
+      if (!parsed.success) return { text: null, finishReason: null };
+
+      const choice = parsed.data.choices[0];
+      return {
+        text: choice?.message.content ?? null,
+        finishReason: choice?.finish_reason ?? null,
+      };
     },
   };
 }

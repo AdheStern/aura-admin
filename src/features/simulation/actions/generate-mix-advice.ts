@@ -20,7 +20,8 @@ import {
   type MixAdvice,
   parseMixAdvice,
 } from "@/features/simulation/schemas/mix-advice";
-import { complete } from "@/lib/llm-client";
+import { mixAdviceJsonSchema } from "@/features/simulation/schemas/mix-advice-json-schema";
+import { complete, reasonSuffix } from "@/lib/llm-client";
 import { modelOf } from "@/lib/llm-providers";
 import { getActiveUser } from "@/lib/session";
 import type { ActionResult } from "@/types/action-result";
@@ -67,12 +68,18 @@ export async function generateMixAdvice(
   const completion = await complete(
     { provider: llm.provider, apiKey: llm.apiKey },
     prompt,
+    mixAdviceJsonSchema(),
   );
   if (!completion.ok) return fail(completion.message);
 
   const parsed = parseMixAdvice(completion.text);
-  if (!parsed.ok)
-    return fail(`La IA respondió algo que no se puede usar. ${parsed.message}`);
+  if (!parsed.ok) {
+    // El motivo de parada va en el mensaje: distingue "se quedó sin presupuesto" de "contestó otra
+    // cosa", y sin él las dos se leen igual de inútiles desde la pantalla.
+    return fail(
+      `La IA respondió algo que no se puede usar${reasonSuffix(completion.finishReason)}. ${parsed.message}`,
+    );
+  }
 
   // El modelo inventa instrumentos que no están en el grafo. Se descartan aquí y no en la vista:
   // un canal que no existe en la escena no debe llegar a guardarse ni a pintarse.
