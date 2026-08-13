@@ -58,10 +58,30 @@ export const mixCompressionSchema = z.object({
   description: z.string().min(1),
 });
 
+/**
+ * Rango del fader de canal. Propio y NO el `LEVEL_DB_RANGE` (−60…+12) de signal-flow: aquél es el
+ * trim de una CAJA y tiene que poder apagarla, éste es el balance ENTRE canales y un −60 aplastaría
+ * contra el suelo toda la zona útil del fader. Son dos "niveles en dB" a un import de distancia, así
+ * que conviene que se llamen distinto y que aquí quede escrito por qué.
+ */
+export const MIX_LEVEL_DB_RANGE = { min: -24, max: 12 } as const;
+
+// El balance es lo que decide cómo suena una mezcla en directo: un channel strip impecable no sirve
+// de nada si la voz va 6 dB por debajo del teclado. Es criterio puro —el motor no modela
+// instrumentos ni buses estéreo— y por eso vive aquí y no en una regla.
+export const mixLevelSchema = z.object({
+  /** Relativo a la unidad, no absoluto: 0 dB es "este canal como lo deja la ganancia de entrada". */
+  gainDb: z.number().min(MIX_LEVEL_DB_RANGE.min).max(MIX_LEVEL_DB_RANGE.max),
+  /** −100 = todo a la izquierda, 0 = centro, +100 = todo a la derecha. */
+  panPercent: z.number().min(-100).max(100),
+  description: z.string().min(1),
+});
+
 export const instrumentMixSchema = z.object({
   /** El id del nodo de la escena. Se comprueba contra el grafo antes de pintar nada. */
   instrumentId: z.string().min(1),
   instrumentName: z.string().min(1),
+  level: mixLevelSchema,
   eq: mixEqSchema,
   reverb: mixReverbSchema,
   compression: mixCompressionSchema,
@@ -77,6 +97,7 @@ export type MixBand = z.infer<typeof mixBandSchema>;
 export type MixEq = z.infer<typeof mixEqSchema>;
 export type MixReverb = z.infer<typeof mixReverbSchema>;
 export type MixCompression = z.infer<typeof mixCompressionSchema>;
+export type MixLevel = z.infer<typeof mixLevelSchema>;
 export type InstrumentMix = z.infer<typeof instrumentMixSchema>;
 export type MixAdvice = z.infer<typeof mixAdviceSchema>;
 

@@ -16,7 +16,11 @@ import { Button } from "@/components/ui/button";
 import { EqCurveChart } from "@/features/simulation/components/results/eq-curve-chart";
 import { MixDynamics } from "@/features/simulation/components/results/mix-dynamics";
 import { MixEqBands } from "@/features/simulation/components/results/mix-eq-bands";
-import { formatChannelStrip } from "@/features/simulation/model/mix-clipboard";
+import {
+  formatChannelStrip,
+  formatGain,
+} from "@/features/simulation/model/mix-clipboard";
+import { formatPan } from "@/features/simulation/model/mix-levels";
 import type { InstrumentMix } from "@/features/simulation/schemas/mix-advice";
 
 export function ChannelStrip({
@@ -45,7 +49,12 @@ export function ChannelStrip({
             <h4 className="text-sm font-semibold">
               {instrument.instrumentName}
             </h4>
-            <p className="text-xs text-muted-foreground">Channel strip</p>
+            {/* El nivel se repite aquí aunque esté en la mesa de arriba: quien copia este canal
+                necesita verlo con el resto de sus ajustes, no a dos secciones de distancia. */}
+            <p className="font-mono text-xs text-muted-foreground tabular-nums">
+              {formatGain(instrument.level.gainDb)} ·{" "}
+              {formatPan(instrument.level.panPercent)}
+            </p>
           </div>
         </div>
         <CopyButton text={formatChannelStrip(instrument, origin)} />

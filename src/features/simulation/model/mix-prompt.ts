@@ -43,6 +43,13 @@ const RULES = [
   "Cómo trabajar:",
   "- Devuelve una entrada por cada instrumento de la lista, en el mismo orden, aunque no tenga",
   "  ningún problema: si está bien, dilo con ganancias pequeñas o a cero y explica por qué.",
+  "- El balance de niveles es lo más importante de todo: decide cómo se oye la mezcla en la sala.",
+  "  Deja en 0 dB el instrumento que lleva la mezcla y expresa los demás respecto a él, en más o en",
+  "  menos. No subas todos los canales a la vez: eso no es balance, es ganancia de sistema.",
+  "- Subir faders no es empujar la PA. El margen de las cajas lo gobiernan las alertas de",
+  "  `deterministic`; tú repartes el peso entre canales dentro de lo que ya hay.",
+  "- El panorama es criterio tuyo: el recinto está simulado en mono y ninguna medida lo respalda.",
+  "  Centra lo que sostiene la mezcla —voz principal, bajo, bombo— y abre lo que la adorna.",
   "- Las recomendaciones de `deterministic` salen de fórmulas de física y ya están decididas. No",
   "  las contradigas: si una manda subir una banda, no la bajes. Complétalas por instrumento.",
   "- Ajusta el criterio a lo que mide la sala. Un RT60 largo en graves pide cortes en la zona de",
@@ -72,6 +79,11 @@ const SHAPE = `{
     {
       "instrumentId": "el nodeId exacto del instrumento",
       "instrumentName": "su nombre",
+      "level": {
+        "gainDb": -24 a 12, relativo al canal que lleva la mezcla, que va en 0,
+        "panPercent": -100 (izquierda) a 100 (derecha), 0 es el centro,
+        "description": "por qué este canal va a este nivel y en esta posición"
+      },
       "eq": { "bands": [ ...de 4 a 6 bandas, mismo formato... ], "description": "estrategia" },
       "reverb": {
         "type": "plate" | "hall" | "room" | "none",

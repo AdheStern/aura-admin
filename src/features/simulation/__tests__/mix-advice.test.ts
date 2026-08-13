@@ -32,6 +32,13 @@ const COMPRESSION = {
   description: "Control suave de dinámica.",
 };
 
+const LEVEL = {
+  gainDb: 0,
+  panPercent: 0,
+  description:
+    "Lleva la mezcla: queda en la unidad y el resto se mide contra él.",
+};
+
 function advice(overrides: Record<string, unknown> = {}) {
   return JSON.stringify({
     roomEq: { bands: [BAND], description: "Corrección de sala." },
@@ -39,6 +46,7 @@ function advice(overrides: Record<string, unknown> = {}) {
       {
         instrumentId: "node-1",
         instrumentName: "Voz masculina",
+        level: LEVEL,
         eq: { bands: [BAND], description: "Presencia." },
         reverb: REVERB,
         compression: COMPRESSION,
@@ -89,6 +97,28 @@ describe("parseMixAdvice", () => {
   it("rechaza una banda a la que le falta la Q", () => {
     const broken = JSON.parse(advice());
     broken.instruments[0].eq.bands[0].q = undefined;
+
+    expect(parseMixAdvice(JSON.stringify(broken)).ok).toBe(false);
+  });
+
+  // El balance es lo que decide la mezcla: un canal sin nivel deja la mesa a medias.
+  it("rechaza un instrumento sin nivel", () => {
+    const broken = JSON.parse(advice());
+    broken.instruments[0].level = undefined;
+
+    expect(parseMixAdvice(JSON.stringify(broken)).ok).toBe(false);
+  });
+
+  it("rechaza un fader fuera del recorrido de una mesa", () => {
+    const broken = JSON.parse(advice());
+    broken.instruments[0].level.gainDb = 40;
+
+    expect(parseMixAdvice(JSON.stringify(broken)).ok).toBe(false);
+  });
+
+  it("rechaza un panorama que se sale de izquierda o derecha", () => {
+    const broken = JSON.parse(advice());
+    broken.instruments[0].level.panPercent = -140;
 
     expect(parseMixAdvice(JSON.stringify(broken)).ok).toBe(false);
   });

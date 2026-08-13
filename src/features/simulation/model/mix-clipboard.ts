@@ -7,6 +7,7 @@
 // pierde la sección que decía que es criterio de un modelo y no una cifra medida — y eso es justo
 // lo que no puede perderse.
 
+import { formatPan } from "@/features/simulation/model/mix-levels";
 import type {
   InstrumentMix,
   MixBand,
@@ -38,11 +39,17 @@ export function formatChannelStrip(
   instrument: InstrumentMix,
   origin: { provider: string; model: string },
 ): string {
-  const { eq, reverb, compression } = instrument;
+  const { level, eq, reverb, compression } = instrument;
 
   return [
     instrument.instrumentName,
     "".padEnd(instrument.instrumentName.length, "="),
+    "",
+    // El nivel va primero porque es lo primero que se toca al montar: el balance antes que el
+    // detalle, igual que en la pantalla.
+    "NIVEL",
+    `  Fader: ${formatGain(level.gainDb)} · Pan: ${formatPan(level.panPercent)}`,
+    `  → ${level.description}`,
     "",
     "ECUALIZACIÓN",
     ...eq.bands.map(bandLine),

@@ -8,6 +8,7 @@
 
 import { ChannelStrip } from "@/features/simulation/components/results/channel-strip";
 import { EqCurveChart } from "@/features/simulation/components/results/eq-curve-chart";
+import { MixConsole } from "@/features/simulation/components/results/mix-console";
 import { MixEqBands } from "@/features/simulation/components/results/mix-eq-bands";
 import type { StoredMixAdvice } from "@/features/simulation/queries/get-mix-advice";
 
@@ -28,6 +29,9 @@ export function MixAdviceView({ stored }: { stored: StoredMixAdvice }) {
       </p>
 
       <p className="text-sm">{advice.summary}</p>
+
+      {/* El balance va antes que nada: es lo que decide cómo suena en la sala. */}
+      <MixConsole instruments={advice.instruments} />
 
       {roomBands.length > 0 ? (
         <section className="flex flex-col gap-2">

@@ -41,7 +41,28 @@ describe("mixAdviceJsonSchema", () => {
     const instrument = (properties.instruments.items as Record<string, unknown>)
       .properties as Record<string, unknown>;
     expect(Object.keys(instrument)).toEqual(
-      expect.arrayContaining(["instrumentId", "eq", "reverb", "compression"]),
+      expect.arrayContaining([
+        "instrumentId",
+        "level",
+        "eq",
+        "reverb",
+        "compression",
+      ]),
+    );
+  });
+
+  // Sin el nivel en el esquema el modelo se lo salta y la mesa sale vacía.
+  it("lleva el nivel con sus dos mandos", () => {
+    const instruments = (
+      schema.properties as Record<string, Record<string, unknown>>
+    ).instruments;
+    const level = (
+      (instruments.items as Record<string, Record<string, unknown>>).properties
+        .level as Record<string, unknown>
+    ).properties as Record<string, unknown>;
+
+    expect(Object.keys(level)).toEqual(
+      expect.arrayContaining(["gainDb", "panPercent", "description"]),
     );
   });
 
