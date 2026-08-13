@@ -1,4 +1,5 @@
-// prisma/seed/consoles.ts — 5 consolas del catálogo inicial (Fase 1 del roadmap).
+// prisma/seed/consoles.ts — las 5 consolas del catálogo inicial (Fase 1 del roadmap) más una
+// interfaz de audio.
 // io.inputChannels e io.outputBuses son load-bearing: de ahí saca el nodo `console` del flujo de
 // señal su número de handles (Sección 5.1). Las fichas de la data de origen traían los canales de
 // entrada pero no los buses, así que el conteo de buses va marcado como pendiente de contraste.
@@ -8,6 +9,8 @@ import type { ConsoleSpec } from "../../src/contracts/console-spec.schema";
 const FICHA = "ficha oficial del fabricante";
 const BUSES_REPRESENTATIVOS =
   "conteo de buses representativo de la clase de producto — pendiente de contraste con la ficha oficial";
+const RANGOS_REPRESENTATIVOS =
+  "rangos de nivel y peso representativos de la clase de producto — pendientes de contraste con la ficha oficial";
 
 type ConsoleRow = {
   brand: string;
@@ -99,6 +102,29 @@ const ROWS: ConsoleRow[] = [
     weightKg: 5.4,
     dataSource:
       "valores representativos de la clase de producto — pendientes de contraste con la ficha oficial",
+  },
+  // No es una consola sino una interfaz de audio, y entra igual porque en el grafo ocupa
+  // exactamente el mismo sitio: es lo que hay entre los micrófonos y el PA (mic→consola→PA de la
+  // Sección 5.1). ConsoleSpec ya la describe sin forzar nada — N entradas con previo y phantom
+  // hacia M salidas— y es el único catálogo cuyo nodo acepta ese papel.
+  //
+  // `digital` por la conversión y el bus USB: no es un mezclador analógico, aunque el camino de
+  // ganancia lo sea. No tiene envíos auxiliares ni matriz, así que esos campos se omiten en vez
+  // de declararse en cero, y tampoco es de rack.
+  {
+    brand: "Behringer",
+    model: "UMC404HD",
+    kind: "digital",
+    inputChannels: 4,
+    outputBuses: 4,
+    trimRangeDb: [0, 50],
+    // No tiene faders: es el rango del control de nivel de salida, que atenúa hasta silencio y
+    // se detiene en unidad. Las consolas de arriba llegan a +10 dB porque un fader sí da realce.
+    faderRangeDb: [-90, 0],
+    // Un solo botón +48 V para las cuatro entradas, no conmutación canal a canal.
+    phantomPerChannel: false,
+    weightKg: 1.1,
+    dataSource: `configuración del producto: 4 entradas combo con previos MIDAS, 4 salidas balanceadas, +48 V global, 24 bit/192 kHz, USB 2.0 y MIDI · ${RANGOS_REPRESENTATIVOS}`,
   },
 ];
 

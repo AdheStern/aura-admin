@@ -16,7 +16,7 @@ export function GoogleButton() {
       disabled={isPending}
       onClick={async () => {
         setIsPending(true);
-        await signIn.social({ provider: "google", callbackURL: "/" });
+        await signIn.social({ provider: "google", callbackURL: "/projects" });
       }}
     >
       {isPending ? "Redirigiendo…" : "Continuar con Google"}

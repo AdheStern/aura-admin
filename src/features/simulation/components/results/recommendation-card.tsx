@@ -10,7 +10,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { SimulationRecommendation } from "@/contracts";
 import { ApplyOrientationButton } from "@/features/simulation/components/results/apply-orientation-button";
+import { EvidenceList } from "@/features/simulation/components/results/evidence-list";
+import { SourceEqCurve } from "@/features/simulation/components/results/source-eq-curve";
 import { TreatmentOptions } from "@/features/simulation/components/results/treatment-options";
+import {
+  humaniseSourceIds,
+  type SourceNames,
+} from "@/features/simulation/model/source-names";
 import type { Treatment } from "@/features/simulation/queries/resolve-treatment";
 import { isRepositionAction } from "@/features/simulation/schemas/reposition-action";
 
@@ -34,6 +40,7 @@ export function RecommendationCard({
   simulationId,
   canApply,
   treatment,
+  sourceNames,
 }: {
   recommendation: SimulationRecommendation;
   simulationId: string;
@@ -41,6 +48,8 @@ export function RecommendationCard({
   canApply: boolean;
   /** Solo en las de absorción, y solo si algo del catálogo cabe en alguna superficie. */
   treatment?: Treatment;
+  /** Para cambiar los ids de nodo del texto y la evidencia por el nombre de la caja. */
+  sourceNames: SourceNames;
 }) {
   const { action, evidence, text, priority, rule } = recommendation;
 
@@ -53,16 +62,18 @@ export function RecommendationCard({
           <span className="text-xs text-muted-foreground">{rule}</span>
         </div>
 
-        <p className="text-sm">{text}</p>
+        <p className="text-sm">{humaniseSourceIds(text, sourceNames)}</p>
 
-        <ActionDetail action={action} />
+        <SourceEqCurve action={action} evidence={evidence} />
+
+        <ActionDetail action={action} sourceNames={sourceNames} />
 
         {treatment ? <TreatmentOptions treatment={treatment} /> : null}
 
         {evidence ? (
           <div className="rounded-md bg-muted/50 p-3">
             <p className="mb-1 text-xs font-medium">Evidencia</p>
-            <KeyValues values={evidence} />
+            <EvidenceList values={evidence} sourceNames={sourceNames} />
           </div>
         ) : null}
 
@@ -83,8 +94,10 @@ export function RecommendationCard({
 /** Los parámetros concretos: qué caja, cuántos dB, a qué frecuencia. */
 function ActionDetail({
   action,
+  sourceNames,
 }: {
   action: SimulationRecommendation["action"];
+  sourceNames: SourceNames;
 }) {
   const { type: _type, ...params } = action;
   if (Object.keys(params).length === 0) return null;
@@ -92,26 +105,7 @@ function ActionDetail({
   return (
     <div className="rounded-md border p-3">
       <p className="mb-1 text-xs font-medium">Acción sugerida</p>
-      <KeyValues values={params} />
+      <EvidenceList values={params} sourceNames={sourceNames} />
     </div>
   );
-}
-
-function KeyValues({ values }: { values: Record<string, unknown> }) {
-  return (
-    <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
-      {Object.entries(values).map(([key, value]) => (
-        <div key={key} className="contents">
-          <dt className="text-muted-foreground">{key}</dt>
-          <dd className="tabular-nums break-all">{format(value)}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
-function format(value: unknown): string {
-  if (Array.isArray(value)) return value.join(", ");
-  if (value !== null && typeof value === "object") return JSON.stringify(value);
-  return String(value);
 }

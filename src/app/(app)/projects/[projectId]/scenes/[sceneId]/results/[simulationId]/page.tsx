@@ -91,6 +91,8 @@ async function Results({
         resolutionM={detail.resolutionM}
         simulationId={detail.simulationId}
         canApply={scene?.role === "OWNER" || scene?.role === "EDITOR"}
+        rtTargetS={detail.rtTargetS}
+        summation={detail.summation}
       />
     </>
   );

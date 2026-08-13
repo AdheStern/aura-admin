@@ -6,11 +6,19 @@
 // splDirectDb, splReverberantDb, splTotalDb, roomConstantM2 y criticalDistanceM están referidos a
 // 10 m y 1 kHz. El contrato no transporta esa referencia (ADR 0004) y sin decirla el número no
 // significa nada, así que la lleva escrita cada ficha afectada.
+//
+// El RT60 de Eyring lleva la suya por un motivo distinto y más incómodo: sale de suponer campo
+// difuso, y el gráfico por bandas de más abajo sale del modelo geométrico. Cuando la absorción se
+// concentra en una superficie —un techo tratado sobre suelo duro, que es el caso corriente— los
+// caminos rasantes apenas la tocan y las dos cifras se separan hasta el doble. No es que una esté
+// mal: es que Eyring no aplica ahí. Sin decir de qué supuesto viene, las dos se leen como una
+// contradicción del cálculo en vez de como lo que son, dos modelos con validez distinta.
 
 import { Card, CardContent } from "@/components/ui/card";
 import type { SimulationSummary } from "@/contracts";
 
 const AT_10M_1KHZ = "a 10 m · 1 kHz";
+const DIFFUSE_FIELD = "campo difuso · 1 kHz";
 
 type Tile = {
   key: keyof SimulationSummary;
@@ -26,7 +34,12 @@ type Tile = {
 const TILES: Tile[] = [
   { key: "splMinDb", label: "Nivel mínimo", unit: "dBA" },
   { key: "splMaxDb", label: "Nivel máximo", unit: "dBA" },
-  { key: "rt60EyringS", label: "RT60 (Eyring)", unit: "s" },
+  {
+    key: "rt60EyringS",
+    label: "RT60 (Eyring)",
+    unit: "s",
+    note: DIFFUSE_FIELD,
+  },
   {
     key: "schroederHz",
     label: "Frecuencia de Schroeder",

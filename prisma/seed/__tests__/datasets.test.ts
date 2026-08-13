@@ -17,14 +17,16 @@ import { MICROPHONES } from "../microphones";
 import { SOURCES } from "../sources";
 import { SPEAKERS } from "../speakers";
 
-// Las cinco primeras son las cifras exactas del roadmap de Fase 1. Los amplificadores suman 2 más
-// que los "5 PA" que pide el doc porque el catálogo incluye también los gestores de altavoces, que
-// el roadmap no contaba; las fuentes no figuran en esa fila (ver el callout de la Sección 5.1).
+// Cifras del roadmap de Fase 1, con dos desvíos declarados: los amplificadores suman 2 más que los
+// "5 PA" que pide el doc porque el catálogo incluye también los gestores de altavoces, que el
+// roadmap no contaba, y las consolas suman 1 más porque el catálogo aloja además una interfaz de
+// audio (ver el comentario de su fila en seed/consoles.ts). Las fuentes no figuran en esa fila
+// (ver el callout de la Sección 5.1).
 const EXPECTED = {
   materiales: 40,
   parlantes: 15,
   microfonos: 10,
-  consolas: 5,
+  consolas: 6,
   amplificadoresConPotencia: 5,
   procesadores: 2,
   fuentes: 11,
