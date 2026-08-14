@@ -14,7 +14,7 @@ import { buildMixContext } from "@/features/simulation/model/mix-context";
 import { buildMixPrompt } from "@/features/simulation/model/mix-prompt";
 import type { StoredMixAdvice } from "@/features/simulation/queries/get-mix-advice";
 import { resolveMixInputs } from "@/features/simulation/queries/resolve-mix-inputs";
-import { saveMixAdvice } from "@/features/simulation/queries/save-mix-advice";
+import { saveAdvice } from "@/features/simulation/queries/save-advice";
 import { simulationIdSchema } from "@/features/simulation/schemas/ids";
 import {
   type MixAdvice,
@@ -102,7 +102,12 @@ export async function generateMixAdvice(
     model: modelOf(llm.provider),
     generatedAt: new Date().toISOString(),
   };
-  await saveMixAdvice(parsedId.data, stored);
+  await saveAdvice(parsedId.data, "MIX_ADVICE", stored, {
+    instruments: advice.instruments.length,
+    provider: stored.provider,
+    model: stored.model,
+    generatedAt: stored.generatedAt,
+  });
 
   revalidatePath(
     `/projects/${projectId}/scenes/${sceneId}/results/${parsedId.data}`,
