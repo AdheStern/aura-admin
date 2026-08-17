@@ -49,14 +49,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Antes que nada lo que consuma tipos: `@prisma/client` reexporta de `.prisma/client`, que no
+      # existe hasta que este paso lo escribe. En una máquina de desarrollo el cliente ya está
+      # generado de antes y no se nota, pero en un checkout limpio `tsc` no encuentra ni PrismaClient
+      # ni Prisma y se cae en cascada por cada query del repo.
+      - name: Generate Prisma client
+        run: pnpm prisma generate
+
       - name: Lint (Biome)
         run: pnpm lint
 
       - name: Typecheck
         run: pnpm typecheck
-
-      - name: Generate Prisma client
-        run: pnpm prisma generate
 
       - name: Test
         run: pnpm test
@@ -84,7 +88,15 @@ jobs:
 
       # playwright.config.ts sirve este build con `pnpm start` en vez de recompilar rutas en frío
       # bajo `pnpm dev` — más rápido y más parecido a lo que corre en producción.
+      #
+      # ENGINE_MODE explícito y distinto al del job: playwright.config.ts cae en `mock-full` solo si
+      # la variable NO viene del entorno, y el `mock` de arriba —que los tests sí necesitan— la
+      # define para todos los pasos, así que ganaba él. Con `mock` a secas el motor simulado
+      # devuelve CANON-01, que trae `recommendations: []` y `alerts: []`, y el camino dorado asegura
+      # sobre las tarjetas de recomendación: fallaba pidiendo algo que ese modo no puede emitir.
       - name: E2E (Playwright)
+        env:
+          ENGINE_MODE: mock-full
         run: pnpm test:e2e
 
       - name: Upload Playwright report
