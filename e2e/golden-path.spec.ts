@@ -59,7 +59,9 @@ test("fuente → consola → PA → 2 parlantes → simulación → recinto deja
     await page.fill('input[name="name"]', `E2E ${stamp}`);
     await page.click('button:has-text("Crear proyecto")');
     await page.waitForSelector('input[name="name"]', { state: "detached" });
-    await page.click("text=Abrir");
+    // La tarjeta entera es el enlace y ya no hay botón "Abrir" al pie. Sin `exact`: el nombre
+    // accesible del enlace arrastra también la insignia de rol, el contador de escenas y el dueño.
+    await page.getByRole("link", { name: `E2E ${stamp}` }).click();
     await page.waitForURL("**/projects/*");
 
     await page.click('button:has-text("+ Nueva escena")');
@@ -67,10 +69,9 @@ test("fuente → consola → PA → 2 parlantes → simulación → recinto deja
     await page.click('button:has-text("Crear escena")');
     await page.waitForSelector('input[name="name"]', { state: "detached" });
 
-    const sceneLink = page.getByRole("link", {
-      name: "Camino dorado",
-      exact: true,
-    });
+    // Tampoco `exact` aquí: la insignia de estado va DENTRO del enlace, así que el nombre accesible
+    // de una escena recién creada es "Borrador Camino dorado".
+    const sceneLink = page.getByRole("link", { name: "Camino dorado" });
     await sceneLink.waitFor({ timeout: 30_000 });
     await sceneLink.click();
     await page.waitForURL("**/flow", { timeout: 30_000 });
