@@ -49,41 +49,48 @@ export function NodeShell({
         selected && "ring-2 ring-ring ring-offset-2 ring-offset-background",
       )}
     >
-      <div className={cn("h-1.5 w-full", definition.accentClass)} />
-      <div className="p-2">
-        <div className="mb-1.5 flex items-center gap-1.5">
-          <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-            {definition.label}
-          </span>
-          {severity === "ok" ? null : (
-            <span
-              title={
-                severity === "error"
-                  ? `${errors.length} error(es)`
-                  : `${warnings.length} aviso(s)`
-              }
-              className={cn(
-                "size-1.5 shrink-0 rounded-full",
-                severity === "error" ? "bg-destructive" : "bg-amber-500",
-              )}
-            />
-          )}
-          {canManage ? (
-            // nodrag: sin esa clase el mousedown sobre el botón lo interpreta React Flow como el
-            // inicio de un arrastre del nodo y el click nunca llega.
-            <button
-              type="button"
-              aria-label="Eliminar nodo"
-              title="Eliminar nodo"
-              onClick={() => deleteNode(nodeId)}
-              className="nodrag -mr-0.5 shrink-0 rounded p-0.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-            >
-              <XIcon className="size-3" />
-            </button>
-          ) : null}
-        </div>
-        {children}
+      {/* Cabecera teñida con el color del tipo, con su icono: se reconoce de qué es el nodo de un
+          vistazo y sin leer, que es lo que hace legible un lienzo con quince cajas. */}
+      <div
+        className={cn(
+          "flex items-center gap-1.5 border-b px-2 py-1.5",
+          definition.accentClass,
+          definition.accentTextClass,
+        )}
+      >
+        <definition.icon className="size-3.5 shrink-0" aria-hidden />
+        <span className="min-w-0 flex-1 truncate text-xs font-semibold">
+          {definition.label}
+        </span>
+        {severity === "ok" ? null : (
+          <span
+            title={
+              severity === "error"
+                ? `${errors.length} error(es)`
+                : `${warnings.length} aviso(s)`
+            }
+            className={cn(
+              "size-1.5 shrink-0 rounded-full",
+              severity === "error" ? "bg-destructive" : "bg-amber-500",
+            )}
+          />
+        )}
+        {canManage ? (
+          // nodrag: sin esa clase el mousedown sobre el botón lo interpreta React Flow como el
+          // inicio de un arrastre del nodo y el click nunca llega.
+          <button
+            type="button"
+            aria-label="Eliminar nodo"
+            title="Eliminar nodo"
+            onClick={() => deleteNode(nodeId)}
+            className="nodrag -mr-0.5 shrink-0 rounded p-0.5 opacity-60 hover:bg-destructive/10 hover:text-destructive hover:opacity-100"
+          >
+            <XIcon className="size-3" />
+          </button>
+        ) : null}
       </div>
+
+      <div className="p-2">{children}</div>
     </div>
   );
 }

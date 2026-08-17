@@ -25,6 +25,7 @@ type EntityActions = Pick<
   | "insertVertexAt"
   | "setHeightM"
   | "setSurfaceMaterial"
+  | "setWallsMaterial"
   | "updateObstacle"
   | "removeObstacle"
   | "updateOpening"
@@ -69,6 +70,26 @@ export function createEntityActions(
     setHeightM: (heightM) => get().runCommand({ kind: "setHeight", heightM }),
     setSurfaceMaterial: (surfaceId, materialId) =>
       get().runCommand({ kind: "setSurfaceMaterial", surfaceId, materialId }),
+
+    // Un solo `replaceDocument` y no N `setSurfaceMaterial`: así deshacer devuelve los muros de una
+    // vez, que es como se hizo el cambio. Encadenar comandos obligaría a deshacer uno por muro.
+    setWallsMaterial: (materialId) => {
+      const document = get().document;
+      const walls = document.surfaces.filter(
+        (surface) => surface.type === "wall",
+      );
+      if (walls.every((wall) => wall.materialId === materialId)) return;
+
+      get().runCommand({
+        kind: "replaceDocument",
+        document: {
+          ...document,
+          surfaces: document.surfaces.map((surface) =>
+            surface.type === "wall" ? { ...surface, materialId } : surface,
+          ),
+        },
+      });
+    },
 
     updateObstacle: (id, patch) => {
       const obstacle = patchedObstacle(get().document, id, patch);

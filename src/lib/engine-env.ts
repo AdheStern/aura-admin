@@ -3,9 +3,9 @@
 // puede hacer lo mismo (Next importa este módulo en rutas que quizá nunca simulen), pero sí exigir
 // la variable en el primer uso y decir exactamente cuál falta.
 
-export type EngineMode = "mock" | "mock-fail" | "http";
+export type EngineMode = "mock" | "mock-full" | "mock-fail" | "http";
 
-const MODES: readonly EngineMode[] = ["mock", "mock-fail", "http"];
+const MODES: readonly EngineMode[] = ["mock", "mock-full", "mock-fail", "http"];
 
 export function engineMode(): EngineMode {
   const mode = process.env.ENGINE_MODE ?? "mock";

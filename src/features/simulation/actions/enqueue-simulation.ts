@@ -15,10 +15,13 @@ import { getSceneWithRole } from "@/features/scenes/queries";
 import { sceneIdSchema } from "@/features/scenes/schemas";
 import { resolveLlmConfig } from "@/features/settings/queries/resolve-llm-config";
 import { requestHash } from "@/features/simulation/model/request-hash";
+import { safeJobError } from "@/features/simulation/model/safe-job-error";
 import { compileSceneRequest } from "@/features/simulation/queries/compile-scene-request";
 import { db } from "@/lib/db";
 import { EngineSubmitError, getEngineClient } from "@/lib/engine-client";
+import { logger } from "@/lib/logger";
 import { asJson } from "@/lib/prisma-json";
+import { reportError } from "@/lib/report-error";
 import { getActiveUser } from "@/lib/session";
 import type { ActionResult } from "@/types/action-result";
 
@@ -72,7 +75,12 @@ export async function enqueueSimulation(
     // secreto en claro y cambiarla invalidaría resultados que siguen siendo buenos.
     const llm = await resolveLlmConfig(activeUser.data.id);
     await getEngineClient().submitSimulation({ ...compiled.request, llm });
+    // El jobId es el correlation id de los dos lados (§10): con esta línea y la del callback se
+    // sigue un job entero aunque el cálculo haya pasado por otro proceso.
+    logger.info("simulación encolada", { jobId: ids.jobId, sceneId: scene.id });
   } catch (error) {
+    // Sin el request dentro: lleva la API key del usuario y no tiene por qué acercarse a un log.
+    reportError(error, { jobId: ids.jobId, sceneId: scene.id });
     await markSubmitFailed(ids.jobId, error);
     return invalid(
       error instanceof EngineSubmitError
@@ -96,6 +104,10 @@ async function markSubmitFailed(jobId: string, error: unknown): Promise<void> {
 
   await db.simulationJob.update({
     where: { id: jobId },
-    data: { status: "FAILED", error: asJson(jobError), finishedAt: new Date() },
+    data: {
+      status: "FAILED",
+      error: asJson(safeJobError(jobError)),
+      finishedAt: new Date(),
+    },
   });
 }

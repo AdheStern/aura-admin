@@ -3,6 +3,15 @@
 // switch por cada consumidor: la paleta del editor, el selector de catálogo y el validador leen
 // todos de esta tabla.
 
+import {
+  AudioLinesIcon,
+  GuitarIcon,
+  type LucideIcon,
+  MicIcon,
+  SlidersHorizontalIcon,
+  SpeakerIcon,
+  WavesIcon,
+} from "lucide-react";
 import type { CatalogType } from "@/features/catalogs/catalog-types";
 import type { FlowNodeKind } from "@/features/signal-flow/schemas/node-kinds";
 
@@ -15,11 +24,14 @@ export type FlowNodeDefinition = {
   hasDatasheet: boolean;
   /** Cuántos admite una escena. Solo simulation está limitado: es el sumidero del sistema. */
   maxPerScene: number;
-  // Color de la franja que identifica el tipo en el lienzo. Va en una franja y NO en el borde
+  // Color con el que el tipo se reconoce en el lienzo. Tiñe la CABECERA del nodo y no su borde,
   // porque el borde ya codifica la severidad de validación (rojo/ámbar): si el tipo también lo
   // usara, un nodo con error perdería su color o el error perdería el suyo. Clases literales
   // completas a propósito — Tailwind las descubre leyendo el código, no concatenando.
   accentClass: string;
+  accentTextClass: string;
+  /** El icono es el mismo que usa su catálogo: el nodo y su lista se reconocen igual. */
+  icon: LucideIcon;
 };
 
 const UNLIMITED = Number.POSITIVE_INFINITY;
@@ -31,7 +43,9 @@ export const FLOW_NODE_DEFINITIONS: Record<FlowNodeKind, FlowNodeDefinition> = {
     catalogSlug: "sources",
     hasDatasheet: true,
     maxPerScene: UNLIMITED,
-    accentClass: "bg-amber-500",
+    accentClass: "bg-amber-500/10",
+    accentTextClass: "text-amber-700 dark:text-amber-300",
+    icon: GuitarIcon,
   },
   microphone: {
     kind: "microphone",
@@ -39,7 +53,9 @@ export const FLOW_NODE_DEFINITIONS: Record<FlowNodeKind, FlowNodeDefinition> = {
     catalogSlug: "microphones",
     hasDatasheet: true,
     maxPerScene: UNLIMITED,
-    accentClass: "bg-violet-500",
+    accentClass: "bg-violet-500/10",
+    accentTextClass: "text-violet-700 dark:text-violet-300",
+    icon: MicIcon,
   },
   console: {
     kind: "console",
@@ -47,7 +63,9 @@ export const FLOW_NODE_DEFINITIONS: Record<FlowNodeKind, FlowNodeDefinition> = {
     catalogSlug: "consoles",
     hasDatasheet: true,
     maxPerScene: UNLIMITED,
-    accentClass: "bg-sky-500",
+    accentClass: "bg-sky-500/10",
+    accentTextClass: "text-sky-700 dark:text-sky-300",
+    icon: SlidersHorizontalIcon,
   },
   pa: {
     kind: "pa",
@@ -55,7 +73,9 @@ export const FLOW_NODE_DEFINITIONS: Record<FlowNodeKind, FlowNodeDefinition> = {
     catalogSlug: "amplifiers",
     hasDatasheet: true,
     maxPerScene: UNLIMITED,
-    accentClass: "bg-rose-500",
+    accentClass: "bg-rose-500/10",
+    accentTextClass: "text-rose-700 dark:text-rose-300",
+    icon: AudioLinesIcon,
   },
   speaker: {
     kind: "speaker",
@@ -63,7 +83,9 @@ export const FLOW_NODE_DEFINITIONS: Record<FlowNodeKind, FlowNodeDefinition> = {
     catalogSlug: "speakers",
     hasDatasheet: true,
     maxPerScene: UNLIMITED,
-    accentClass: "bg-emerald-500",
+    accentClass: "bg-emerald-500/10",
+    accentTextClass: "text-emerald-700 dark:text-emerald-300",
+    icon: SpeakerIcon,
   },
   simulation: {
     kind: "simulation",
@@ -71,7 +93,9 @@ export const FLOW_NODE_DEFINITIONS: Record<FlowNodeKind, FlowNodeDefinition> = {
     catalogSlug: null,
     hasDatasheet: false,
     maxPerScene: 1,
-    accentClass: "bg-zinc-400",
+    accentClass: "bg-zinc-500/10",
+    accentTextClass: "text-zinc-700 dark:text-zinc-300",
+    icon: WavesIcon,
   },
 };
 

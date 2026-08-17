@@ -19,12 +19,18 @@ export function PropertiesPanel() {
 
   return (
     <aside className="flex w-80 shrink-0 flex-col gap-4 overflow-y-auto border-l bg-background p-4">
-      {renderSelectedPanel(selection)}
+      <SelectedPanel selection={selection} />
     </aside>
   );
 }
 
-function renderSelectedPanel(selection: RoomSelection | null) {
+/** Se exporta sin el `aside` para que el editor 3D monte estos mismos paneles dentro del suyo, que
+ *  además lleva la vuelta a la escena — ver room-3d-properties-panel.tsx. */
+export function SelectedPanel({
+  selection,
+}: {
+  selection: RoomSelection | null;
+}) {
   if (!selection) return <IdlePanel />;
 
   switch (selection.kind) {

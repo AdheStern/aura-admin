@@ -4,13 +4,10 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
+import { AppMain } from "@/components/app-main";
 import { AppSidebar } from "@/components/app-sidebar";
-import { ThemeToggle } from "@/components/theme-toggle";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SiteHeader } from "@/components/site-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getActiveUser } from "@/lib/session";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
@@ -23,19 +20,25 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
-      <AppSidebar activeUser={activeUser.data} />
-      <SidebarInset>
-        <header className="flex items-center border-b px-4 py-3">
-          <SidebarTrigger />
-          <div className="ml-auto">
-            <ThemeToggle />
-          </div>
-        </header>
-        <main className="flex flex-1 flex-col px-6 py-8 sm:px-10">
-          {children}
-        </main>
-      </SidebarInset>
+    // La cabecera cruza la ventana entera y el sidebar arranca DEBAJO. Así, al plegarse a iconos,
+    // la franja de arriba no se mueve y el rail queda de una pieza: el logo se pliega con el resto
+    // del menú en vez de quedar suelto a la altura de la cabecera.
+    //
+    // La altura de la cabecera se declara UNA vez, aquí: el sidebar y los editores restan esta
+    // variable para llenar la ventana sin desbordarla, y dos cifras distintas darían un scroll
+    // fantasma.
+    <SidebarProvider
+      defaultOpen={defaultOpen}
+      className="flex flex-col"
+      style={{ "--header-height": "3.5rem" } as React.CSSProperties}
+    >
+      <SiteHeader />
+      <div className="flex flex-1">
+        <AppSidebar activeUser={activeUser.data} />
+        <SidebarInset className="h-[calc(100svh-var(--header-height))] min-h-0 overflow-hidden">
+          <AppMain>{children}</AppMain>
+        </SidebarInset>
+      </div>
     </SidebarProvider>
   );
 }

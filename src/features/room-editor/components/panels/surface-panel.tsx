@@ -4,7 +4,7 @@
 
 "use client";
 
-import { MaterialSelect } from "@/features/room-editor/components/material-select";
+import { MaterialField } from "@/features/room-editor/components/material-field";
 import {
   shellOf,
   wallLengthM,
@@ -29,15 +29,10 @@ export function SurfacePanel({ surfaceId }: { surfaceId: string }) {
             Longitud: {lengthM.toFixed(2)} m
           </p>
         ) : null}
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm">Material</span>
-          <MaterialSelect
-            value={surface.materialId}
-            onChange={(materialId) =>
-              setSurfaceMaterial(surface.id, materialId)
-            }
-          />
-        </div>
+        <MaterialField
+          value={surface.materialId}
+          onChange={(materialId) => setSurfaceMaterial(surface.id, materialId)}
+        />
       </div>
     </div>
   );

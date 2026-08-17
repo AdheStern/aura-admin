@@ -12,6 +12,8 @@
 import { DownloadIcon, UploadIcon } from "lucide-react";
 import { type ChangeEvent, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { FloorCaptureDialog } from "@/features/room-editor/components/floor-capture-dialog";
+import { rectangleFootprint } from "@/features/room-editor/model/rectangle-from-photo";
 import { parseRoom } from "@/features/room-editor/schemas/parse-room";
 import { useRoomStore } from "@/features/room-editor/store/room-store-provider";
 
@@ -19,6 +21,7 @@ export function ImportExportControls() {
   const document = useRoomStore((state) => state.document);
   const canManage = useRoomStore((state) => state.canManage);
   const importDocument = useRoomStore((state) => state.importDocument);
+  const runCommand = useRoomStore((state) => state.runCommand);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importError, setImportError] = useState<string | null>(null);
 
@@ -72,6 +75,18 @@ export function ImportExportControls() {
           >
             <UploadIcon /> Importar JSON
           </Button>
+
+          {/* Reemplaza la planta entera, así que pasa por el mismo comando que arrastrar un vértice
+              y se deshace igual. Va aquí y no en la tira de herramientas porque no es una forma de
+              dibujar: es traer un documento de fuera, como importar el JSON de al lado. */}
+          <FloorCaptureDialog
+            onFootprint={(widthM, depthM) =>
+              runCommand({
+                kind: "setFootprint",
+                vertices: rectangleFootprint(widthM, depthM),
+              })
+            }
+          />
           <input
             ref={fileInputRef}
             type="file"

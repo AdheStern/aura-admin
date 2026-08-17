@@ -9,13 +9,21 @@
 
 import type { SimulationResult } from "@/contracts";
 
+// Los seis primeros son los del doc y los produce `toSimResults` a partir del resultado del motor.
+// Los dos últimos no: los escribe la app —consejo de mezcla y de tratamiento acústico— y el motor no
+// los emite nunca. El kind es propiedad de la app, y estas filas son la prueba. Se GUARDAN en vez de
+// regenerarse en cada visita por dos razones: la llamada la paga el usuario con su clave, y lo que
+// se enseñe en la defensa tiene que poder volver a enseñarse igual. Van colgados de la simulación,
+// que está congelada, así que describen siempre la misma física; regenerar es un botón.
 export type ResultKind =
   | "SUMMARY"
   | "RT_BANDS"
   | "SPL_GRID"
   | "CLARITY_GRID"
   | "ALERTS"
-  | "RECOMMENDATIONS";
+  | "RECOMMENDATIONS"
+  | "MIX_ADVICE"
+  | "PANEL_ADVICE";
 
 export type SimResultRow = {
   kind: ResultKind;

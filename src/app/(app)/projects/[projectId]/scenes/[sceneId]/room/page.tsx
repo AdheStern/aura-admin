@@ -1,9 +1,9 @@
 // src/app/(app)/projects/[projectId]/scenes/[sceneId]/room/page.tsx — editor 2D del recinto.
 
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { RoomEditor } from "@/features/room-editor/components/room-editor";
 import { listRoomMaterialOptions } from "@/features/room-editor/queries/list-room-material-options";
+import { listRoomMaterialSpecs } from "@/features/room-editor/queries/list-room-material-specs";
 import { parseRoom } from "@/features/room-editor/schemas/parse-room";
 import { validateRoom } from "@/features/room-editor/validation/validate-room";
 import { getSceneWithRole } from "@/features/scenes/queries";
@@ -27,34 +27,27 @@ export default async function SceneRoomPage({
   // se corta aquí en vez de renderizar un editor sobre un documento que no se puede interpretar.
   if (!parsedDocument.ok) notFound();
 
-  const materialLibrary = await listRoomMaterialOptions();
+  const [materialLibrary, materialSpecById] = await Promise.all([
+    listRoomMaterialOptions(),
+    listRoomMaterialSpecs(),
+  ]);
   const validation = validateRoom(parsedDocument.data, materialLibrary);
   const canManage = scene.role === "OWNER" || scene.role === "EDITOR";
 
+  // Sin cabecera propia: el editor llena la ventana y el nombre va en su franja de título.
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <Link
-          href={`/projects/${projectId}/scenes/${sceneId}/flow`}
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          ← Flujo de señal
-        </Link>
-        <h1 className="font-heading text-2xl font-bold tracking-tight">
-          {scene.name}
-        </h1>
-      </div>
-      <RoomEditor
-        init={{
-          sceneId: scene.id,
-          canManage,
-          document: parsedDocument.data,
-          materialOptions: materialLibrary.options,
-          materialIds: materialLibrary.materialIds,
-          sceneStatus: scene.status,
-          validation,
-        }}
-      />
-    </div>
+    <RoomEditor
+      sceneName={scene.name}
+      init={{
+        sceneId: scene.id,
+        canManage,
+        document: parsedDocument.data,
+        materialOptions: materialLibrary.options,
+        materialIds: materialLibrary.materialIds,
+        materialSpecById,
+        sceneStatus: scene.status,
+        validation,
+      }}
+    />
   );
 }

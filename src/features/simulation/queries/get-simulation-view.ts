@@ -24,6 +24,11 @@ export type SimulationDetail = {
   requestHash: string;
   /** Paso de la grilla: el lado de cada celda del mapa, en metros. */
   resolutionM: number;
+  /** El rango CONGELADO con el que se simuló, no el de la escena de hoy: es contra ese que
+   *  RtTargetRule decidió callar o hablar, y es el que la vista tiene que explicar. */
+  rtTargetS: readonly [number, number] | null;
+  /** Cómo se sumaron las fuentes: decide si hubo fase, y con ella grilla de cancelación. */
+  summation: "energy" | "complex" | null;
   /** El recinto de HOY, solo para dibujar la planta bajo el mapa. */
   document: RoomDocument | null;
   job: { status: EngineJobStatus; progress: number; error: JobError | null };
@@ -67,6 +72,8 @@ export async function getSimulationView(
     resolutionM: config.success
       ? config.data.grid.resolutionM
       : FALLBACK_RESOLUTION_M,
+    rtTargetS: config.success ? (config.data.rtTargetS ?? null) : null,
+    summation: config.success ? config.data.summation : null,
     document: document.ok ? document.data : null,
     job: {
       status: (simulation.job?.status ?? "QUEUED") as EngineJobStatus,

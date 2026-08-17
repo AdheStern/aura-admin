@@ -6,9 +6,11 @@
 // usa el motor real. Un mock que se saltara esa ingesta escondería justo los bugs que allí viven
 // —firma, idempotencia, transiciones de estado— hasta el día del despliegue.
 
+import type { SimulationRequest } from "@/contracts";
 import { simulationResultSchema } from "@/contracts";
 import canonExpected from "@/contracts/fixtures/canon-01.expected.json";
 import type { EngineClient, EngineJobUpdate } from "@/lib/engine-client.types";
+import { fullMockResult } from "@/lib/engine-mock-result";
 import {
   SIGNATURE_HEADER,
   signEngineBody,
@@ -18,30 +20,55 @@ import {
 const MOCK_RESULT = simulationResultSchema.parse(canonExpected);
 const PROGRESS_STEPS = [0, 20, 40, 60, 80, 100] as const;
 
-/** La secuencia que el loopback entrega, aparte del transporte, para poder asertarla sin red. */
-export function mockJobUpdates(mode: "mock" | "mock-fail"): EngineJobUpdate[] {
+export type MockMode = "mock" | "mock-full" | "mock-fail";
+
+/**
+ * La secuencia que el loopback entrega, aparte del transporte, para poder asertarla sin red.
+ *
+ * `request` solo hace falta en `mock-full`, que deriva su grilla de la sala que le mandaron: sin
+ * eso el mapa saldría de otra sala y no cuadraría con el 3D que tiene delante.
+ */
+export function mockJobUpdates(
+  mode: MockMode,
+  request?: SimulationRequest,
+): EngineJobUpdate[] {
   const running = PROGRESS_STEPS.map<EngineJobUpdate>((progress) => ({
     status: "RUNNING",
     progress,
   }));
 
-  const last: EngineJobUpdate =
-    mode === "mock-fail"
-      ? {
-          status: "FAILED",
-          progress: 100,
-          error: {
-            code: "ENGINE_FAILURE",
-            message: "Fallo simulado (ENGINE_MODE=mock-fail)",
-          },
-        }
-      : { status: "COMPLETED", progress: 100, result: MOCK_RESULT };
+  return [
+    { status: "QUEUED", progress: 0 },
+    ...running,
+    lastUpdate(mode, request),
+  ];
+}
 
-  return [{ status: "QUEUED", progress: 0 }, ...running, last];
+function lastUpdate(
+  mode: MockMode,
+  request?: SimulationRequest,
+): EngineJobUpdate {
+  if (mode === "mock-fail") {
+    return {
+      status: "FAILED",
+      progress: 100,
+      error: {
+        code: "ENGINE_FAILURE",
+        message: "Fallo simulado (ENGINE_MODE=mock-fail)",
+      },
+    };
+  }
+
+  const result =
+    mode === "mock-full" && request
+      ? fullMockResult(request, MOCK_RESULT)
+      : MOCK_RESULT;
+
+  return { status: "COMPLETED", progress: 100, result };
 }
 
 export function createLoopbackEngineClient(
-  mode: "mock" | "mock-fail",
+  mode: MockMode,
   secret: string,
   appUrl: string,
   stepDelayMs = 500,
@@ -52,7 +79,9 @@ export function createLoopbackEngineClient(
       // Sin await, igual que el 202 del motor: encolar devuelve enseguida y el trabajo sigue
       // aparte. Los fallos se tragan porque un motor tampoco puede avisar a quien ya respondió.
       running.add(jobId);
-      void deliver(mode, jobId, secret, appUrl, stepDelayMs).catch(() => {});
+      void deliver(mode, jobId, secret, appUrl, stepDelayMs, request).catch(
+        () => {},
+      );
     },
 
     async cancelSimulation(jobId) {
@@ -73,11 +102,12 @@ const running = new Set<string>();
 const cancelled = new Set<string>();
 
 async function deliver(
-  mode: "mock" | "mock-fail",
+  mode: MockMode,
   jobId: string,
   secret: string,
   appUrl: string,
   stepDelayMs: number,
+  request: SimulationRequest,
 ): Promise<void> {
   const base = `${appUrl.replace(/\/$/, "")}/api/internal/jobs/${jobId}`;
 
@@ -89,7 +119,7 @@ async function deliver(
       await send(`${base}/progress`, JSON.stringify({ progress }), secret);
     }
 
-    const [last] = mockJobUpdates(mode).slice(-1);
+    const [last] = mockJobUpdates(mode, request).slice(-1);
     const body = last.result ? last.result : { error: last.error };
     // Una cancelación NO entrega callback: la app ya sabe que canceló porque lo pidió.
     if (!cancelled.has(jobId)) {

@@ -2,11 +2,17 @@
 // Las fichas publican rangos de frecuencia, no curvas tabuladas, y en cajas activas no publican
 // sensibilidad: ambos se derivan con las reglas de derive.ts. `sensitivity.reference` declara
 // literalmente que el valor es derivado, que es para lo que el contrato tiene ese campo.
+//
+// El DI por banda va por el mismo camino y NO puede faltar: el motor deriva Q de ahí para las
+// fórmulas estadísticas y con el diccionario vacío no calcula nada. Casi ninguna ficha lo publica
+// como cifra —lo dan en gráfica—, así que se transcribe donde la hay y se deriva de la cobertura
+// donde no, contrastando la fórmula contra la única publicada (ver datasets.test.ts).
 
 import type { SpeakerSpec } from "../../src/contracts/speaker-spec.schema";
 import {
   continuousFromPeakSpl,
   curveFromRanges,
+  diByBand,
   powerFromPeak,
   sensitivityFromMaxSpl,
 } from "./derive";
@@ -34,6 +40,8 @@ type SpeakerRow = {
   range10: [number, number];
   range3: [number, number];
   coverage: { hDeg: number; vDeg: number };
+  /** DI nominal SOLO si la ficha lo publica como cifra. La mayoria lo da en grafica, no en tabla. */
+  diPublishedDb?: number;
   weightKg: number;
   /** [ancho, alto, profundidad] en mm. */
   dimensionsMm: [number, number, number];
@@ -183,12 +191,16 @@ const ROWS: SpeakerRow[] = [
     range10: [45, 20000],
     range3: [56, 20000],
     coverage: { hDeg: 90, vDeg: 50 },
+    // La unica ficha del catalogo que publica el DI como cifra ("Directivity Index (DI): 10.2 dB,
+    // Directivity Factor (Q): 10.4"). Es el ancla contra la que datasets.test.ts contrasta la
+    // derivacion del resto: la formula sobre 90x50 da 9.6 dB, 0.6 dB por debajo.
+    diPublishedDb: 10.2,
     weightKg: 19.4,
     dimensionsMm: [385, 599, 341],
     connectors: ["xlr3", "combo_jack"],
     activePowered: true,
     rigging: true,
-    dataSource: `${FICHA} · control Wi-Fi vía PRX Connect`,
+    dataSource: `${FICHA} · control Wi-Fi vía PRX Connect · DI publicado`,
   },
 
   // ---- Referencia de consumo ---------------------------------------------------------------
@@ -352,9 +364,15 @@ function toSpec(row: SpeakerRow): SpeakerSpec {
     },
     directivity: {
       nominalCoverage: row.coverage,
-      // La ficha no publica DI por banda y el contrato lo admite parcial: se deja vacío en vez
-      // de rellenarlo con un número inventado.
-      diByBand: {},
+      // Vacío NO es una opción aunque el contrato lo admita: el motor deriva Q de aquí para las
+      // fórmulas estadísticas y con el diccionario vacío no calcula nada. Se transcribe el DI de
+      // la ficha donde lo publica y se deriva de la cobertura donde no (ver derive.ts).
+      diByBand: diByBand({
+        coverage: row.coverage,
+        lf: row.transducers.lf ?? "",
+        omnidirectional: row.kind === "subwoofer",
+        publishedDb: row.diPublishedDb,
+      }),
       balloon: null,
     },
     physical: {

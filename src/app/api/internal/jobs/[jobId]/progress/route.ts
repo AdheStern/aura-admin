@@ -7,6 +7,7 @@
 import { z } from "zod";
 import { recordJobProgress } from "@/features/simulation/queries/record-job-progress";
 import { readSignedCallback, unauthorized } from "@/lib/engine-callback";
+import { logger } from "@/lib/logger";
 
 const progressBodySchema = z.object({
   progress: z.number().int().min(0).max(100),
@@ -26,6 +27,12 @@ export async function POST(
 
   const { jobId } = await context.params;
   const outcome = await recordJobProgress(jobId, body.data.progress);
+
+  // El latido en sí NO se loggea: llega cada 5 % y ahogaría todo lo demás. Solo lo que no cuadra —
+  // un latido para un job que la app no conoce delata jobId cruzados o una base que se restauró.
+  if (outcome !== "applied") {
+    logger.warn("latido de un job que no está vivo", { jobId, outcome });
+  }
 
   return Response.json({ outcome });
 }

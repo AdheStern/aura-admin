@@ -1,12 +1,11 @@
 // src/app/(app)/projects/[projectId]/scenes/[sceneId]/room/3d/page.tsx — editor 3D del recinto
 // (Fase 4, Tarea 1): extrusión, cámara, picking de superficies y panel de materiales.
 
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Room3dEditor } from "@/features/room-3d/components/room-3d-editor";
-import { listRoomMaterialColors } from "@/features/room-3d/queries/list-room-material-colors";
 import { listSceneSpeakers } from "@/features/room-3d/queries/list-scene-speakers";
 import { listRoomMaterialOptions } from "@/features/room-editor/queries/list-room-material-options";
+import { listRoomMaterialSpecs } from "@/features/room-editor/queries/list-room-material-specs";
 import { parseRoom } from "@/features/room-editor/schemas/parse-room";
 import { validateRoom } from "@/features/room-editor/validation/validate-room";
 import { getSceneWithRole } from "@/features/scenes/queries";
@@ -32,10 +31,10 @@ export default async function SceneRoom3dPage({
   // No debería pasar nunca: las actions validan antes de persistir, igual que en la página del 2D.
   if (!parsedDocument.ok || !parsedSimulation.ok) notFound();
 
-  const [materialLibrary, materialColorsById, speakers, overlay] =
+  const [materialLibrary, materialSpecById, speakers, overlay] =
     await Promise.all([
       listRoomMaterialOptions(),
-      listRoomMaterialColors(),
+      listRoomMaterialSpecs(),
       // Del GRAFO, no del recinto: aquí las cajas se colocan, no se crean (§5.3).
       listSceneSpeakers(scene.signalFlow),
       getLatestSplGrid(scene.id),
@@ -43,34 +42,23 @@ export default async function SceneRoom3dPage({
   const validation = validateRoom(parsedDocument.data, materialLibrary);
   const canManage = scene.role === "OWNER" || scene.role === "EDITOR";
 
+  // Sin cabecera propia: el editor llena la ventana y el nombre va en su franja de titulo.
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <Link
-          href={`/projects/${projectId}/scenes/${sceneId}/room`}
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          ← Editor 2D
-        </Link>
-        <h1 className="font-heading text-2xl font-bold tracking-tight">
-          {scene.name}
-        </h1>
-      </div>
-      <Room3dEditor
-        init={{
-          sceneId: scene.id,
-          canManage,
-          document: parsedDocument.data,
-          materialOptions: materialLibrary.options,
-          materialIds: materialLibrary.materialIds,
-          sceneStatus: scene.status,
-          validation,
-        }}
-        speakers={speakers}
-        simulation={parsedSimulation.data}
-        materialColorsById={materialColorsById}
-        overlay={overlay}
-      />
-    </div>
+    <Room3dEditor
+      sceneName={scene.name}
+      init={{
+        sceneId: scene.id,
+        canManage,
+        document: parsedDocument.data,
+        materialOptions: materialLibrary.options,
+        materialIds: materialLibrary.materialIds,
+        materialSpecById,
+        sceneStatus: scene.status,
+        validation,
+      }}
+      speakers={speakers}
+      simulation={parsedSimulation.data}
+      overlay={overlay}
+    />
   );
 }

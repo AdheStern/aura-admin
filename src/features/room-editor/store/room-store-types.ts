@@ -5,6 +5,7 @@
 import type { RoomHistory } from "@/features/room-editor/history/room-history";
 import type { CanvasViewport } from "@/features/room-editor/model/canvas-transform";
 import type { MaterialPickerOption } from "@/features/room-editor/queries/list-room-material-options";
+import type { MaterialSpecById } from "@/features/room-editor/queries/list-room-material-specs";
 import type { RoomCommand } from "@/features/room-editor/schemas/room-command";
 import type {
   Point2d,
@@ -34,6 +35,9 @@ export type RoomStoreState = {
   history: RoomHistory;
   materialOptions: MaterialPickerOption[];
   materialIds: ReadonlySet<string>;
+  /** La ficha de cada material, para enseñarla al elegirlo y para el color por NRC del 3D. Un id
+   *  que no esté aquí es un material sin ficha legible, no un id inválido — eso lo dice `materialIds`. */
+  materialSpecById: MaterialSpecById;
   selection: RoomSelection | null;
   activeTool: RoomToolKind;
   draft: RoomDraft;
@@ -64,6 +68,8 @@ export type RoomStoreState = {
   insertVertexAt: (edgeIndex: number, pointM: Point2d) => void;
   setHeightM: (heightM: number) => void;
   setSurfaceMaterial: (surfaceId: string, materialId: string | null) => void;
+  /** Todos los muros a la vez, en un solo paso de historial. */
+  setWallsMaterial: (materialId: string | null) => void;
   updateObstacle: (
     id: string,
     patch: Partial<Pick<RoomObstacle, "at" | "size" | "materialId">>,
@@ -95,6 +101,7 @@ export type RoomStoreInit = Pick<
   | "document"
   | "materialOptions"
   | "materialIds"
+  | "materialSpecById"
   | "sceneStatus"
   | "validation"
 >;

@@ -1,6 +1,5 @@
 // src/app/(app)/projects/[projectId]/scenes/[sceneId]/flow/page.tsx — editor de flujo de señal.
 
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSceneWithRole } from "@/features/scenes/queries";
 import { FlowEditor } from "@/features/signal-flow/components/flow-editor";
@@ -36,31 +35,21 @@ export default async function SceneFlowPage({
   const { nodes, edges } = toReactFlowState(parsedDocument.data);
   const canManage = scene.role === "OWNER" || scene.role === "EDITOR";
 
+  // Sin cabecera propia: el editor ocupa la ventana entera y el nombre vive en su franja de título
+  // (SceneEditorHeader). Volver al proyecto es cosa de las migas de la cabecera de la app.
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <Link
-          href={`/projects/${projectId}`}
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          ← Volver al proyecto
-        </Link>
-        <h1 className="font-heading text-2xl font-bold tracking-tight">
-          {scene.name}
-        </h1>
-      </div>
-      <FlowEditor
-        init={{
-          sceneId: scene.id,
-          canManage,
-          nodes,
-          edges,
-          viewport: parsedDocument.data.viewport,
-          library,
-          sceneStatus: scene.status,
-          validation,
-        }}
-      />
-    </div>
+    <FlowEditor
+      sceneName={scene.name}
+      init={{
+        sceneId: scene.id,
+        canManage,
+        nodes,
+        edges,
+        viewport: parsedDocument.data.viewport,
+        library,
+        sceneStatus: scene.status,
+        validation,
+      }}
+    />
   );
 }

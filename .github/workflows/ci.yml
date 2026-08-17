@@ -70,6 +70,15 @@ jobs:
       - name: Seed catalogs
         run: pnpm db:seed
 
+      # La capa de integración de la Sección 11: authz por rol y transiciones de estado contra
+      # Postgres de verdad. Va después de migrar porque necesita el esquema, y lee TEST_DATABASE_URL
+      # y no DATABASE_URL a propósito: estos tests borran filas, y heredar la base de una máquina de
+      # desarrollo sería un borrado de datos reales. Sin esa variable se saltan solos.
+      - name: Integration tests
+        env:
+          TEST_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+        run: pnpm test:integration
+
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 

@@ -5,7 +5,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { MaterialSelect } from "@/features/room-editor/components/material-select";
+import { MaterialField } from "@/features/room-editor/components/material-field";
 import { NumberField } from "@/features/room-editor/components/panels/number-field";
 import { useRoomStore } from "@/features/room-editor/store/room-store-provider";
 
@@ -75,15 +75,10 @@ export function ObstaclePanel({ obstacleId }: { obstacleId: string }) {
             }
           />
         )}
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm">Material</span>
-          <MaterialSelect
-            value={obstacle.materialId}
-            onChange={(materialId) =>
-              updateObstacle(obstacle.id, { materialId })
-            }
-          />
-        </div>
+        <MaterialField
+          value={obstacle.materialId}
+          onChange={(materialId) => updateObstacle(obstacle.id, { materialId })}
+        />
       </div>
       {canManage ? (
         <Button

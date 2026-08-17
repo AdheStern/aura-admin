@@ -12,7 +12,6 @@ import { Room3dCanvas } from "@/features/room-3d/components/room-3d-canvas";
 import { Room3dPropertiesPanel } from "@/features/room-3d/components/room-3d-properties-panel";
 import { Room3dToolbar } from "@/features/room-3d/components/room-3d-toolbar";
 import { useAutosaveSpeakerAudio } from "@/features/room-3d/hooks/use-autosave-speaker-audio";
-import type { MaterialNrcById } from "@/features/room-3d/queries/list-room-material-colors";
 import {
   type SpeakerStoreInit,
   SpeakerStoreProvider,
@@ -30,15 +29,15 @@ export function Room3dEditor({
   init,
   speakers,
   simulation,
-  materialColorsById,
   overlay,
+  sceneName,
 }: {
   init: RoomStoreInit;
   speakers: SpeakerStoreInit["speakers"];
   simulation: SceneSimulation;
-  materialColorsById: MaterialNrcById;
   /** Cobertura de la última simulación completada, o null si no hay ninguna. */
   overlay: SplOverlay | null;
+  sceneName: string;
 }) {
   const scoped = { sceneId: init.sceneId, canManage: init.canManage };
   // Encendido cuando hay algo que enseñar: quien acaba de simular quiere ver el resultado, no
@@ -49,17 +48,15 @@ export function Room3dEditor({
     <RoomStoreProvider init={init}>
       <SpeakerStoreProvider init={{ ...scoped, speakers }}>
         <SimulationStoreProvider init={{ ...scoped, simulation }}>
-          <div className="flex h-[80vh] min-h-[600px] flex-col rounded-lg border">
+          <div className="flex h-full min-h-0 flex-col">
             <Room3dToolbar
+              sceneName={sceneName}
               hasOverlay={overlay !== null}
               showMap={showMap}
               onToggleMap={() => setShowMap((shown) => !shown)}
             />
             <div className="flex min-h-0 flex-1">
-              <CanvasWithAutosave
-                materialColorsById={materialColorsById}
-                overlay={showMap ? overlay : null}
-              />
+              <CanvasWithAutosave overlay={showMap ? overlay : null} />
               <Room3dPropertiesPanel />
             </div>
           </div>
@@ -69,20 +66,14 @@ export function Room3dEditor({
   );
 }
 
-function CanvasWithAutosave({
-  materialColorsById,
-  overlay,
-}: {
-  materialColorsById: MaterialNrcById;
-  overlay: SplOverlay | null;
-}) {
+function CanvasWithAutosave({ overlay }: { overlay: SplOverlay | null }) {
   useAutosaveRoom();
   useAutosaveSpeakerAudio();
   useAutosaveSimulation();
 
   return (
     <div className="relative flex min-w-0 flex-1">
-      <Room3dCanvas materialColorsById={materialColorsById} overlay={overlay} />
+      <Room3dCanvas overlay={overlay} />
       {/* La escala va SIEMPRE que haya mapa: cuatro tonos para magnitud solo valen con su leyenda
           a la vista, o el color no dice cuántos dB son. */}
       {overlay ? (

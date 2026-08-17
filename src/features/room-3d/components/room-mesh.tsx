@@ -13,22 +13,18 @@ import { OpeningOverlay } from "@/features/room-3d/components/opening-overlay";
 import { WallMesh } from "@/features/room-3d/components/wall-mesh";
 import { extrudeRoom } from "@/features/room-3d/model/extrude-room";
 import { decodeMeshName } from "@/features/room-3d/model/mesh-selection";
-import { nrcColorHex } from "@/features/room-3d/model/nrc-color";
-import type { MaterialNrcById } from "@/features/room-3d/queries/list-room-material-colors";
+import { deriveNrc, nrcColorHex } from "@/features/room-3d/model/nrc-color";
 import { useRoomStore } from "@/features/room-editor/store/room-store-provider";
 
 /** Mismo azul que wallSelected/obstacleSelected/openingSelected en canvas-palette.ts (2D): la
  *  selección tiene que leerse igual sin importar desde qué vista se hizo el click. */
 const SELECTED_HEX = "#0ea5e9";
 
-export function RoomMesh({
-  materialColorsById,
-}: {
-  materialColorsById: MaterialNrcById;
-}) {
+export function RoomMesh() {
   const document = useRoomStore((state) => state.document);
   const selection = useRoomStore((state) => state.selection);
   const select = useRoomStore((state) => state.select);
+  const materialSpecById = useRoomStore((state) => state.materialSpecById);
   const extruded = useMemo(() => extrudeRoom(document), [document]);
 
   function handlePick(event: ThreeEvent<MouseEvent>) {
@@ -41,10 +37,8 @@ export function RoomMesh({
     if (selection !== null && "id" in selection && selection.id === id) {
       return SELECTED_HEX;
     }
-    const nrc = materialId
-      ? (materialColorsById.get(materialId) ?? null)
-      : null;
-    return nrcColorHex(nrc);
+    const spec = materialId ? materialSpecById.get(materialId) : undefined;
+    return nrcColorHex(spec ? deriveNrc(spec) : null);
   }
 
   return (

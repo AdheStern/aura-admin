@@ -15,6 +15,7 @@ import { enqueueSimulation } from "@/features/simulation/actions/enqueue-simulat
 import { JobStatus } from "@/features/simulation/components/job-status";
 import { useJobProgress } from "@/features/simulation/hooks/use-job-progress";
 import type { SimulationBlocker } from "@/features/simulation/model/can-simulate";
+import { useSimulationStore } from "@/features/simulation/store/simulation-store";
 
 type EnqueueState = { error: string | null };
 
@@ -28,6 +29,10 @@ export function SimulateButton({
   blockers: SimulationBlocker[];
 }) {
   const { job, isLive, refresh } = useJobProgress(sceneId);
+  // El payload se compila desde lo GUARDADO. Simular con cambios en vuelo mandaría la configuración
+  // anterior y devolvería resultados que nacen marcados como desactualizados — sin que nada lo
+  // explique. Se espera al autosave, y se dice que se está esperando.
+  const isUnsaved = useSimulationStore((state) => state.isDirty);
 
   const [state, action, isPending] = useActionState<EnqueueState, FormData>(
     async () => {
@@ -50,10 +55,10 @@ export function SimulateButton({
         <Button
           type="submit"
           className="w-full"
-          disabled={!isReady || !canManage || isPending || isLive}
+          disabled={!isReady || !canManage || isPending || isLive || isUnsaved}
           title={isReady ? undefined : "Faltan cosas por resolver"}
         >
-          {isLive ? "Simulando…" : "Simular"}
+          {isLive ? "Simulando…" : isUnsaved ? "Guardando cambios…" : "Simular"}
         </Button>
       </form>
 
